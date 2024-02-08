@@ -1,15 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+import useVideoEditorActions from "@/hooks/UseVideoEditorActions";
 import useWindowSize from "@/hooks/UseWindowSize";
 import React from "react";
-import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { fetchFile, toBlobURL } from "@ffmpeg/util";
 export default function useVideoEditor(videoUrl: string) {
   const startTimestamp = performance.now();
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const debouncedFunction = React.useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
-  const ffmpegRef = React.useRef(new FFmpeg());
+  
 
   const [videoDuration, setVideoDuration] = React.useState<
     number | undefined
@@ -20,14 +19,16 @@ export default function useVideoEditor(videoUrl: string) {
   const [frames, setFrames] = React.useState<string[]>([]);
 
   const [width] = useWindowSize();
+  const {trimVideo, cutVideo, addTextOnVideo} = useVideoEditorActions()
 
   React.useEffect(() => {
     if (!videoRef || !videoRef.current) return;
 
     // videoRef.current.src = videoUrl;
-    trimVideo().then((url) => {
+    // test
+    addTextOnVideo(videoUrl).then((url) => {
       if (!videoRef || !videoRef.current) return;
-      if (url) videoRef.current.src = url;
+      videoRef.current.src = url;
     });
     requestAnimationFrame(updateVideoTime);
   }, []);
@@ -61,80 +62,6 @@ export default function useVideoEditor(videoUrl: string) {
     return `${minutes}:${seconds < 10 ? "0" : ""}${seconds.toFixed(2)}`;
   }, []);
 
-  const load = async () => {
-    const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
-    const ffmpeg = ffmpegRef.current;
-    ffmpeg.on("log", ({ message }) => {
-      console.clear();
-      console.log(message);
-    });
-    // toBlobURL is used to bypass CORS issue, urls with the same
-    // domain can be used directly.
-    await ffmpeg.load({
-      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(
-        `${baseURL}/ffmpeg-core.wasm`,
-        "application/wasm"
-      ),
-    });
-  };
-
-  const cutVideo = async () => {
-    const ffmpeg = ffmpegRef.current;
-    // Carregar ffmpeg.wasm
-    await load();
-
-    // Escrever o arquivo de vídeo
-    ffmpeg.writeFile("input.mp4", await fetchFile(videoUrl));
-
-    await ffmpeg.exec([
-      "-i",
-      "input.mp4",
-      "-filter_complex",
-      "trim=duration=20:start=0,trim=duration=10:start=30,setpts=N/FRAME_RATE/TB",
-      "output.mp4",
-    ]);
-
-    // Ler o arquivo cortado
-    const data = (await ffmpeg.readFile("output.mp4")) as any;
-
-    // Criar uma Blob a partir dos dados
-    const blob = new Blob([data.buffer], { type: "video/mp4" });
-
-    // Criar uma URL para a Blob
-    return URL.createObjectURL(blob);
-  };
-
-  const trimVideo = async (
-    from: string = "00:00:10",
-    to: string = "00:00:30"
-  ) => {
-    const ffmpeg = ffmpegRef.current;
-    // Carregar ffmpeg.wasm
-    await load();
-
-    // Escrever o arquivo de vídeo
-    ffmpeg.writeFile("input.mp4", await fetchFile(videoUrl));
-
-    await ffmpeg.exec([
-      "-ss",
-      from,
-      "-to",
-      to,
-      "-i",
-      "input.mp4",
-      "output.mp4",
-    ]);
-
-    // Ler o arquivo cortado
-    const data = (await ffmpeg.readFile("output.mp4")) as any;
-
-    // Criar uma Blob a partir dos dados
-    const blob = new Blob([data.buffer], { type: "video/mp4" });
-
-    // Criar uma URL para a Blob
-    return URL.createObjectURL(blob);
-  };
 
   const generateFrames = async () => {
     if (!videoDuration) return;
