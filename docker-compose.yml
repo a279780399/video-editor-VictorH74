@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  app:
+    container_name: video-editor-app
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    volumes:
+        - .:/video-editor
+        - /video-editor/node_modules
+        - /video-editor/.next
+    command: npm run dev
+    ports:
+      - 3000:3000
