@@ -1,17 +1,24 @@
 import React from "react";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
+import useVideoEditor from "./useVideoEditor";
 
 export default function useVideoEditorActions() {
   const ffmpegRef = React.useRef(new FFmpeg());
+
+  const { videoUrl, videoStartTime, videoEndTime } = useVideoEditor();
 
   // Carregar ffmpeg.wasm
   const load = async () => {
     const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
     const ffmpeg = ffmpegRef.current;
-    ffmpeg.on("log", ({ message }) => {
-      console.log(message);
-    });
+
+    if (process.env.NODE_ENV === "development") {
+      ffmpeg.on("log", ({ message }) => {
+        console.log(message);
+      });
+    }
+
     // toBlobURL is used to bypass CORS issue, urls with the same
     // domain can be used directly.
     await ffmpeg.load({
@@ -23,23 +30,20 @@ export default function useVideoEditorActions() {
     });
   };
 
-  const cutVideo = async (
-    videoUrl: string,
-    startTime: string = "9.981289",
-    endTime: string = "19.814823"
-  ) => {
+  const cutVideo = async () => {
     const ffmpeg = ffmpegRef.current;
+
     // temp
     await load();
 
     // Escrever o arquivo de vídeo
-    ffmpeg.writeFile("input.mp4", await fetchFile(videoUrl));
+    ffmpeg.writeFile("input.mp4", await fetchFile(videoUrl!));
 
     await ffmpeg.exec([
       "-i",
       "input.mp4",
       "-t",
-      startTime,
+      videoStartTime.toString(),
       "-c",
       "copy",
       "part1.mp4",
@@ -49,7 +53,7 @@ export default function useVideoEditorActions() {
       "-i",
       "input.mp4",
       "-ss",
-      endTime,
+      videoEndTime.toString(),
       "-c",
       "copy",
       "part2.mp4",
@@ -81,24 +85,20 @@ export default function useVideoEditorActions() {
     return URL.createObjectURL(blob);
   };
 
-  const trimVideo = async (
-    videoUrl: string,
-    startTime: string = "00:00:10",
-    endTime: string = "00:00:30"
-  ) => {
+  const trimVideo = async () => {
     const ffmpeg = ffmpegRef.current;
 
     // temp
     await load();
 
     // Escrever o arquivo de vídeo
-    ffmpeg.writeFile("input.mp4", await fetchFile(videoUrl));
+    ffmpeg.writeFile("input.mp4", await fetchFile(videoUrl!));
 
     await ffmpeg.exec([
       "-ss",
-      startTime,
+      videoStartTime.toString(),
       "-to",
-      endTime,
+      videoEndTime.toString(),
       "-i",
       "input.mp4",
       "-c",
@@ -117,7 +117,6 @@ export default function useVideoEditorActions() {
   };
 
   const addTextOnVideo = async (
-    videoUrl: string,
     text: string = "Me nombre es Victor A",
     x: number = 10,
     y: number = 10,
@@ -130,7 +129,7 @@ export default function useVideoEditorActions() {
     await load();
 
     // Escrever o arquivo de vídeo
-    ffmpeg.writeFile("input.mp4", await fetchFile(videoUrl));
+    ffmpeg.writeFile("input.mp4", await fetchFile(videoUrl!));
 
     await ffmpeg.writeFile(
       "arial.ttf",
@@ -139,6 +138,7 @@ export default function useVideoEditorActions() {
       )
     );
 
+    //fontfile=/arial.ttf:
     await ffmpeg.exec([
       "-i",
       "input.mp4",
@@ -151,6 +151,31 @@ export default function useVideoEditorActions() {
 
     // Criar uma URL para a Blob
     return URL.createObjectURL(new Blob([data2.buffer], { type: "video/mp4" }));
+  };
+
+  const toWebm = async (url: string) => {
+    const ffmpeg = ffmpegRef.current;
+
+    ffmpeg.writeFile("input.mp4", await fetchFile(url));
+
+    console.log("now");
+
+    const command =
+      "-i input.mp4 -c:v libvpx-vp9 -crf 30 -b:v 0 -b:a 128k -c:a libopus output.webm".split(
+        " "
+      );
+
+    console.log(command);
+
+    await ffmpeg.exec(command);
+
+    console.log("exec exited");
+
+    const data2 = (await ffmpeg.readFile("output.webm")) as any;
+
+    return URL.createObjectURL(
+      new Blob([data2.buffer], { type: "video/webm" })
+    );
   };
 
   return {

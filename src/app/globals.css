@@ -28,16 +28,17 @@
 
 .slider::-webkit-slider-thumb {
   appearance: none;
-  width: 8px;
-  height: 100px;
-  background: #e738ad;
+  width: 1px;
+  height: 58px;
+  background: rgb(232 121 249);
   cursor: pointer;
 }
 
 .slider::-moz-range-thumb {
   appearance: none;
-  width: 8px;
+  width: 1px;
   height: 100px;
-  background: #e738ad;
+  background: rgb(232 121 249);
   cursor: pointer;
 }
+

@@ -1,0 +1,165 @@
+import React from "react";
+import Image from "next/image";
+import useVideoPlaybackControl, {
+  frameHeight,
+  frameWidth,
+} from "./UseVideoPlaybackControl";
+import { formatTime } from "@/utils/functions";
+import useVideoEditor from "@/hooks/useVideoEditor";
+
+interface Props {
+  videoDuration: number;
+  value: number;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  trimCutValue: "trim" | "cut";
+}
+
+export default function VideoPlayerBar(props: Props) {
+  const {
+    playbackControlContainerRef,
+    playbackControlRef,
+    shadowThumbRef,
+    shadowThumbValueRef,
+    videoStartTimeRef,
+    videoEndTimeRef,
+    mouseMoveTarget,
+    videoStartSectionRef,
+    videoCutSectionRef,
+    videoEndSectionRef,
+    frames,
+    showTimeIndicator,
+    toggleShowIndicator,
+    videoStartTimeHandleMouseDown,
+    videoEndTimeHandleMouseDown,
+    setMouseMoveTarget,
+    handleMouseMove,
+  } = useVideoPlaybackControl(props.trimCutValue);
+  const { videoStartTime, videoEndTime } = useVideoEditor();
+
+  return (
+    <div
+      ref={playbackControlContainerRef}
+      className="relative h-[58px] w-[90%] select-none"
+      onMouseMove={handleMouseMove}
+    >
+      {/* <span className="absolute">{props.value}</span> */}
+
+      {Array(2)
+        .fill(undefined)
+        .map((_, i) => (
+          <div
+            key={i}
+            className={`absolute top-0 bottom-0 w-2 bg-sky-400 z-50 flex flex-col justify-center items-center gap-1 ${
+              i === 1 && "right-0"
+            }`}
+            style={{
+              translate:
+                props.trimCutValue === "trim"
+                  ? i === 0
+                    ? "-8px"
+                    : "8px"
+                  : "0",
+              borderRadius:
+                props.trimCutValue === "trim"
+                  ? i === 0
+                    ? "5px 0 0 5px"
+                    : "0 5px 5px 0"
+                  : i === 0
+                  ? "0 5px 5px 0"
+                  : "5px 0 0 5px",
+            }}
+            ref={i === 0 ? videoStartTimeRef : videoEndTimeRef}
+            onMouseDown={
+              i === 0
+                ? videoStartTimeHandleMouseDown
+                : videoEndTimeHandleMouseDown
+            }
+            onMouseOver={() => {
+              document.body.style.cursor = "ew-resize";
+            }}
+            onMouseLeave={() => {
+              if (mouseMoveTarget) return;
+              document.body.style.cursor = "default";
+            }}
+          >
+            <span className="absolute -bottom-7 text-sky-400">
+              {formatTime(i === 0 ? videoStartTime : videoEndTime)}
+            </span>
+            {Array(3)
+              .fill(undefined)
+              .map((_, i) => (
+                <div key={i} className="size-[5px] rounded-full bg-white"></div>
+              ))}
+          </div>
+        ))}
+
+      <div
+        ref={videoStartSectionRef}
+        className="absolute pointer-events-none top-0 bottom-0 left-0 right-full opacity-70"
+        style={{
+          backgroundColor:
+            props.trimCutValue === "trim" ? "rgb(100 116 139)" : "transparent",
+        }}
+      />
+      <div
+        ref={videoCutSectionRef}
+        className="absolute pointer-events-none bg-blue-400 top-0 bottom-0 left-0 right-0  opacity-70"
+        style={{
+          backgroundColor:
+            props.trimCutValue === "cut" ? "rgb(100 116 139)" : "transparent",
+        }}
+      />
+      <div
+        ref={videoEndSectionRef}
+        className="absolute pointer-events-none bg-green-300 top-0 bottom-0 left-full right-0 opacity-70"
+        style={{
+          backgroundColor:
+            props.trimCutValue === "trim" ? "rgb(100 116 139)" : "transparent",
+        }}
+      />
+      <input
+        ref={playbackControlRef}
+        type="range"
+        min={0}
+        max={props.videoDuration * 1000}
+        value={props.value * 1000}
+        onChange={props.onChange}
+        onMouseOver={toggleShowIndicator}
+        onMouseLeave={toggleShowIndicator}
+        onClick={() => {
+          setMouseMoveTarget("rangeinput");
+        }}
+        className="slider rounded-lg bg-transparent absolute inset-0 borçder-2 appearance-none overflow-hidden"
+        id="myRange"
+      />
+      <div
+        style={{ display: showTimeIndicator ? "grid" : "none" }}
+        ref={shadowThumbRef}
+        className="absolute bg-orange-400 w-[1px] h-full pointer-events-none"
+      >
+        <span
+          ref={shadowThumbValueRef}
+          className="absolute -top-7 -translate-x-1/2 text-orange-300"
+        >
+          000
+        </span>
+      </div>
+
+      <div className="overflow-hidden h-full flex flex-row justify-center">
+        {frames.map((f, i) => (
+          <Image
+            style={{
+              width: "auto",
+              height: "auto",
+            }}
+            key={i}
+            width={frameWidth}
+            height={frameHeight}
+            src={f}
+            alt="frame"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}

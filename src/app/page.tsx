@@ -1,10 +1,11 @@
 "use client";
-import VideoEditorWorkArea from "@/ui/VideoEditor";
+import useVideoEditor from "@/hooks/useVideoEditor";
+import DownloadFinalVideo from "@/ui/DownloadFinalVideo";
+import EditorWorkSpace from "@/ui/EditorWorkSpace";
 import React, { ChangeEvent } from "react";
 
 export default function Home() {
-  const [videoUrl, setVideoUrl] = React.useState<string | null>(null);
-  const [videoName, setVideoName] = React.useState<string | undefined>();
+  const {videoUrl, setVideoUrl, setVideoName, exportedVideoUrl, processingVideo} = useVideoEditor();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const fileInput = e.target;
@@ -17,10 +18,14 @@ export default function Home() {
     }
   };
 
+  if (exportedVideoUrl) return (<DownloadFinalVideo />)
+
+  if (processingVideo) return (<div className="w-screen h-screen grid place-items-center"><h1>Loading...</h1></div>)
+
   return (
     <main>
       {videoUrl ? (
-        <VideoEditorWorkArea videoUrl={videoUrl} videoName={videoName!} />
+        <EditorWorkSpace />
       ) : (
         <div className="border-2 h-screen grid place-items-center">
           <input
@@ -28,7 +33,7 @@ export default function Home() {
             type="file"
             name="video"
             id="video-uploader"
-            accept=".mp4"
+            accept=".mp4,.webm"
           />
         </div>
       )}
