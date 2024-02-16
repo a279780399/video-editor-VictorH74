@@ -28,12 +28,7 @@ export default function useEditorWorkSpace() {
     if (!videoRef || !videoRef.current || !videoUrl) return;
 
     videoRef.current.src = videoUrl;
-
-    // test
-    // addTextOnVideo(videoUrl).then((url) => {
-    //   if (!videoRef || !videoRef.current) return;
-    //   videoRef.current.src = url;
-    // });
+    
     requestAnimationFrame(updateVideoTime);
   }, []);
 
@@ -64,7 +59,7 @@ export default function useEditorWorkSpace() {
         });
       }
     } catch (e) {
-      console.error(e)
+      console.error(e);
     } finally {
       setProcessingVideo(false);
     }

@@ -6,6 +6,8 @@ import useVideoPlaybackControl, {
 } from "./UseVideoPlaybackControl";
 import { formatTime } from "@/utils/functions";
 import useVideoEditor from "@/hooks/useVideoEditor";
+import FrameList from "@/components/FrameList";
+import PlaybackControlTrack from "@/components/PlaybackControlTrack";
 
 interface Props {
   videoDuration: number;
@@ -36,6 +38,8 @@ export default function VideoPlayerBar(props: Props) {
   } = useVideoPlaybackControl(props.trimCutValue);
   const { videoStartTime, videoEndTime } = useVideoEditor();
 
+  const trim = props.trimCutValue === "trim";
+
   return (
     <div
       ref={playbackControlContainerRef}
@@ -53,20 +57,14 @@ export default function VideoPlayerBar(props: Props) {
               i === 1 && "right-0"
             }`}
             style={{
-              translate:
-                props.trimCutValue === "trim"
-                  ? i === 0
-                    ? "-8px"
-                    : "8px"
-                  : "0",
-              borderRadius:
-                props.trimCutValue === "trim"
-                  ? i === 0
-                    ? "5px 0 0 5px"
-                    : "0 5px 5px 0"
-                  : i === 0
-                  ? "0 5px 5px 0"
-                  : "5px 0 0 5px",
+              translate: trim ? (i === 0 ? "-8px" : "8px") : "0",
+              borderRadius: trim
+                ? i === 0
+                  ? "5px 0 0 5px"
+                  : "0 5px 5px 0"
+                : i === 0
+                ? "0 5px 5px 0"
+                : "5px 0 0 5px",
             }}
             ref={i === 0 ? videoStartTimeRef : videoEndTimeRef}
             onMouseDown={
@@ -93,30 +91,10 @@ export default function VideoPlayerBar(props: Props) {
           </div>
         ))}
 
-      <div
-        ref={videoStartSectionRef}
-        className="absolute pointer-events-none top-0 bottom-0 left-0 right-full opacity-70"
-        style={{
-          backgroundColor:
-            props.trimCutValue === "trim" ? "rgb(100 116 139)" : "transparent",
-        }}
-      />
-      <div
-        ref={videoCutSectionRef}
-        className="absolute pointer-events-none bg-blue-400 top-0 bottom-0 left-0 right-0  opacity-70"
-        style={{
-          backgroundColor:
-            props.trimCutValue === "cut" ? "rgb(100 116 139)" : "transparent",
-        }}
-      />
-      <div
-        ref={videoEndSectionRef}
-        className="absolute pointer-events-none bg-green-300 top-0 bottom-0 left-full right-0 opacity-70"
-        style={{
-          backgroundColor:
-            props.trimCutValue === "trim" ? "rgb(100 116 139)" : "transparent",
-        }}
-      />
+      <PlaybackControlTrack sectionRef={videoStartSectionRef} className="left-0" show={trim} />
+      <PlaybackControlTrack sectionRef={videoCutSectionRef} show={!trim} />
+      <PlaybackControlTrack sectionRef={videoEndSectionRef} className="right-0" show={trim} />
+
       <input
         ref={playbackControlRef}
         type="range"
@@ -141,25 +119,15 @@ export default function VideoPlayerBar(props: Props) {
           ref={shadowThumbValueRef}
           className="absolute -top-7 -translate-x-1/2 text-orange-300"
         >
-          000
+          -
         </span>
       </div>
 
-      <div className="overflow-hidden h-full flex flex-row justify-center">
-        {frames.map((f, i) => (
-          <Image
-            style={{
-              width: "auto",
-              height: "auto",
-            }}
-            key={i}
-            width={frameWidth}
-            height={frameHeight}
-            src={f}
-            alt="frame"
-          />
-        ))}
-      </div>
+      <FrameList
+        frames={frames}
+        frameHeight={frameHeight}
+        frameWidth={frameWidth}
+      />
     </div>
   );
 }

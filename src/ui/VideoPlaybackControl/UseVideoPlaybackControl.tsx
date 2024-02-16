@@ -135,9 +135,7 @@ export default function useVideoPlaybackControl(trimCutValue: "trim" | "cut") {
     if (!playbackControlRef || !playbackControlRef.current) return;
 
     const playbackControl = playbackControlRef.current;
-
     const rect = playbackControl.getBoundingClientRect();
-
     const width = rect.right - rect.left; // Largura do elemento
 
     const [leftDistance, rightDistance] = [
@@ -162,7 +160,6 @@ export default function useVideoPlaybackControl(trimCutValue: "trim" | "cut") {
         ref2.current &&
         ref3.current
       ) {
-        console.log(abortCondition);
         if (abortCondition) return true;
 
         cb(ref);
@@ -185,7 +182,6 @@ export default function useVideoPlaybackControl(trimCutValue: "trim" | "cut") {
         playbackControlValue >= videoEndTime || playbackControlValue < 0,
         (ref) => {
           if (ref.current) {
-            setVideoStartTime(playbackControlValue);
             setVideoStartTime(playbackControlValue);
             ref.current.style.left = `${leftDistance}px`;
           }
@@ -217,7 +213,6 @@ export default function useVideoPlaybackControl(trimCutValue: "trim" | "cut") {
     if (!shadowThumbValueRef || !shadowThumbValueRef.current) return;
 
     shadowThumbRef.current.style.left = `${leftDistance}px`;
-
     shadowThumbValueRef.current.textContent = formatTime(playbackControlValue);
   };
 
@@ -231,21 +226,34 @@ export default function useVideoPlaybackControl(trimCutValue: "trim" | "cut") {
     }
   };
 
+  const handleMouseDown = (
+    setter: (v: number) => void,
+    target: MoveTarget,
+    mouseXPos: number
+  ) => {
+    if (!playbackControlRef || !playbackControlRef.current) return;
+
+    const playbackControl = playbackControlRef.current;
+    const rect = playbackControl.getBoundingClientRect();
+    const width = rect.right - rect.left; // Largura do elemento
+    const leftDistance = mouseXPos - rect.left;
+
+    let value = (leftDistance / width) * (Number(playbackControl.max) / 1000);
+
+    if (value < 0) value = 0;
+    if (videoDuration && value > videoDuration) value = videoDuration;
+
+    setter(value);
+    setMouseMoveTarget(target);
+  };
+
   const videoStartTimeHandleMouseDown = (
     e: React.MouseEvent<HTMLInputElement, MouseEvent>
-  ) => {
-    if (!videoStartTimeRef.current) return;
-    setVideoStartTime(e.clientX - videoStartTimeRef.current.offsetLeft);
-    setMouseMoveTarget("selectpartSTART");
-  };
+  ) => handleMouseDown(setVideoStartTime, "selectpartSTART", e.clientX);
 
   const videoEndTimeHandleMouseDown = (
     e: React.MouseEvent<HTMLInputElement, MouseEvent>
-  ) => {
-    if (!videoEndTimeRef.current) return;
-    setVideoEndTime(e.clientX - videoEndTimeRef.current.offsetLeft);
-    setMouseMoveTarget("selectpartEND");
-  };
+  ) => handleMouseDown(setVideoEndTime, "selectpartEND", e.clientX);
 
   return {
     playbackControlContainerRef,

@@ -8,6 +8,18 @@ export default function useVideoEditorActions() {
 
   const { videoUrl, videoStartTime, videoEndTime } = useVideoEditor();
 
+  const strToCommand = (commandStr: string) => commandStr.split(" ");
+
+  const createUrl = async () => {
+    const ffmpeg = ffmpegRef.current;
+
+    const data = (await ffmpeg.readFile("output.mp4")) as any;
+    // Criar uma Blob a partir dos dados
+    const blob = new Blob([data.buffer], { type: "video/mp4" });
+    // Criar uma URL para a Blob
+    return URL.createObjectURL(blob);
+  };
+
   // Carregar ffmpeg.wasm
   const load = async () => {
     const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
@@ -39,50 +51,21 @@ export default function useVideoEditorActions() {
     // Escrever o arquivo de vídeo
     ffmpeg.writeFile("input.mp4", await fetchFile(videoUrl!));
 
-    await ffmpeg.exec([
-      "-i",
-      "input.mp4",
-      "-t",
-      videoStartTime.toString(),
-      "-c",
-      "copy",
-      "part1.mp4",
-    ]);
+    const part1 = `-i input.mp4 -t ${videoStartTime.toString()} -c copy part1.mp4`;
+    const part2 = `-i input.mp4 -ss ${videoEndTime.toString()} -c copy part2.mp4`;
+    const concatParts = "-f concat -safe 0 -i list.txt -c copy output.mp4";
 
-    await ffmpeg.exec([
-      "-i",
-      "input.mp4",
-      "-ss",
-      videoEndTime.toString(),
-      "-c",
-      "copy",
-      "part2.mp4",
-    ]);
+    await ffmpeg.exec(strToCommand(part1));
+    await ffmpeg.exec(strToCommand(part2));
 
     ffmpeg.writeFile(
       "list.txt",
       ["file 'part1.mp4'", "file 'part2.mp4'"].join("\n")
     );
 
-    await ffmpeg.exec([
-      "-f",
-      "concat",
-      "-safe",
-      "0",
-      "-i",
-      "list.txt",
-      "-c",
-      "copy",
-      "output.mp4",
-    ]);
+    await ffmpeg.exec(strToCommand(concatParts));
 
-    // Ler o arquivo cortado
-    const data = (await ffmpeg.readFile("output.mp4")) as any;
-
-    // Criar uma Blob a partir dos dados
-    const blob = new Blob([data.buffer], { type: "video/mp4" });
-
-    return URL.createObjectURL(blob);
+    return createUrl();
   };
 
   const trimVideo = async () => {
@@ -94,26 +77,10 @@ export default function useVideoEditorActions() {
     // Escrever o arquivo de vídeo
     ffmpeg.writeFile("input.mp4", await fetchFile(videoUrl!));
 
-    await ffmpeg.exec([
-      "-ss",
-      videoStartTime.toString(),
-      "-to",
-      videoEndTime.toString(),
-      "-i",
-      "input.mp4",
-      "-c",
-      "copy",
-      "output.mp4",
-    ]);
+    const command = `-ss ${videoStartTime.toString()} -to ${videoEndTime.toString()} -i input.mp4 -c copy output.mp4`;
+    await ffmpeg.exec(strToCommand(command));
 
-    // Ler o arquivo cortado
-    const data = (await ffmpeg.readFile("output.mp4")) as any;
-
-    // Criar uma Blob a partir dos dados
-    const blob = new Blob([data.buffer], { type: "video/mp4" });
-
-    // Criar uma URL para a Blob
-    return URL.createObjectURL(blob);
+    return createUrl();
   };
 
   const addTextOnVideo = async (
@@ -147,10 +114,7 @@ export default function useVideoEditorActions() {
       "output.mp4",
     ]);
 
-    const data2 = (await ffmpeg.readFile("output.mp4")) as any;
-
-    // Criar uma URL para a Blob
-    return URL.createObjectURL(new Blob([data2.buffer], { type: "video/mp4" }));
+    return createUrl();
   };
 
   const toWebm = async (url: string) => {
@@ -172,7 +136,6 @@ export default function useVideoEditorActions() {
     console.log("exec exited");
 
     const data2 = (await ffmpeg.readFile("output.webm")) as any;
-
     return URL.createObjectURL(
       new Blob([data2.buffer], { type: "video/webm" })
     );
