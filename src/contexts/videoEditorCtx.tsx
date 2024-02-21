@@ -1,7 +1,10 @@
 "use client";
 import React from "react";
+import { FFmpeg } from "@ffmpeg/ffmpeg";
+import { toBlobURL } from "@ffmpeg/util";
 
 interface Props {
+  ffmpegRef: React.MutableRefObject<FFmpeg>;
   videoDuration: number | undefined;
   videoStartTime: number;
   videoEndTime: number;
@@ -9,6 +12,11 @@ interface Props {
   videoUrl: string | null;
   processingVideo: boolean;
   exportedVideoUrl: string | null;
+  setVideoStartTime: React.Dispatch<React.SetStateAction<number>>;
+  setVideoEndTime: React.Dispatch<React.SetStateAction<number>>;
+  setVideoName: React.Dispatch<React.SetStateAction<string | null>>;
+  setVideoUrl: React.Dispatch<React.SetStateAction<string | null>>;
+  setProcessingVideo: React.Dispatch<React.SetStateAction<boolean>>;
   setVideoStartTime: (v: number) => void;
   setVideoEndTime: (v: number) => void;
   setVideoName: (v: string) => void;
@@ -34,21 +42,25 @@ export const videoEditorCtx = React.createContext({
   setExportedVideoUrl: () => {},
   setVideoDuration: () => {},
 } as Props);
+  setExportedVideoUrl: React.Dispatch<React.SetStateAction<string | null>>;
+  setVideoDuration: React.Dispatch<React.SetStateAction<number | undefined>>;
+export const videoEditorCtx = React.createContext<Props | null>(null);
 
 export default function VideoEditorProvider({
   children,
 }: {
   children: React.ReactElement;
 }) {
-  const [videoStartTime, setStartTimeState] = React.useState(0);
-  const [videoEndTime, setEndTimeState] = React.useState(0);
-  const [videoName, setVideoNameState] = React.useState<string | null>(null);
-  const [videoUrl, setUrlState] = React.useState<string | null>(null);
-  const [processingVideo, setProcessingVideoState] = React.useState(false);
-  const [exportedVideoUrl, setExportedVideoUrlState] = React.useState<
-    string | null
-  >(null);
-  const [videoDuration, setVideoDurationState] = React.useState<
+  const ffmpegRef = React.useRef(new FFmpeg());
+  const [videoStartTime, setVideoStartTime] = React.useState(0);
+  const [videoEndTime, setVideoEndTime] = React.useState(0);
+  const [videoName, setVideoName] = React.useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = React.useState<string | null>(null);
+  const [processingVideo, setProcessingVideo] = React.useState(false);
+  const [exportedVideoUrl, setExportedVideoUrl] = React.useState<string | null>(
+    null
+  );
+  const [videoDuration, setVideoDuration] = React.useState<
     number | undefined
   >();
 
@@ -56,20 +68,35 @@ export default function VideoEditorProvider({
     if (videoDuration) setVideoEndTime(videoDuration);
   }, [videoDuration]);
 
-  const setVideoStartTime = (newValue: number) => setStartTimeState(newValue);
-  const setVideoEndTime = (newValue: number) => setEndTimeState(newValue);
-  const setVideoName = (newValue: string) => setVideoNameState(newValue);
-  const setVideoUrl = (newValue: string) => setUrlState(newValue);
-  const setProcessingVideo = (newValue: boolean) =>
-    setProcessingVideoState(newValue);
-  const setExportedVideoUrl = (newValue: string) =>
-    setExportedVideoUrlState(newValue);
-  const setVideoDuration = (newValue: number | undefined) =>
-    setVideoDurationState(newValue);
+  React.useEffect(() => {
+    load();
+  }, []);
+
+  const load = async () => {
+    const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
+    const ffmpeg = ffmpegRef.current;
+
+    if (process.env.NODE_ENV === "development") {
+      ffmpeg.on("log", ({ message }) => {
+        console.log(message);
+      });
+    }
+
+    // toBlobURL is used to bypass CORS issue, urls with the same
+    // domain can be used directly.
+    await ffmpeg.load({
+      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
+      wasmURL: await toBlobURL(
+        `${baseURL}/ffmpeg-core.wasm`,
+        "application/wasm"
+      ),
+    });
+  };
 
   return (
     <videoEditorCtx.Provider
       value={{
+        ffmpegRef,
         videoDuration,
         videoStartTime,
         videoEndTime,

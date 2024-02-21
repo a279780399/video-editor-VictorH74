@@ -1,52 +1,39 @@
-import React from "react";
-import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
-import useVideoEditor from "./useVideoEditor";
+import useVideoEditorCtx from "./useVideoEditorCtx";
+import { FFmpeg } from "@ffmpeg/ffmpeg";
 
-export default function useVideoEditorActions() {
-  const ffmpegRef = React.useRef(new FFmpeg());
+export type DataType = { videoUrl: string; fromTime: number; toTime: number };
 
-  const { videoUrl, videoStartTime, videoEndTime } = useVideoEditor();
+export default function useVideoEditorCtxActions() {
+  const { videoUrl, videoStartTime, videoEndTime, ffmpegRef, videoDuration } =
+    useVideoEditorCtx();
 
   const strToCommand = (commandStr: string) => commandStr.split(" ");
 
-  const createUrl = async () => {
+  const createUrl = async (outputName?: string) => {
     const ffmpeg = ffmpegRef.current;
 
-    const data = (await ffmpeg.readFile("output.mp4")) as any;
+    const data = (await ffmpeg.readFile(outputName || "output.mp4")) as any;
     // Criar uma Blob a partir dos dados
     const blob = new Blob([data.buffer], { type: "video/mp4" });
     // Criar uma URL para a Blob
     return URL.createObjectURL(blob);
   };
 
-  // Carregar ffmpeg.wasm
-  const load = async () => {
-    const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
+  const trimVideo = async () => {
     const ffmpeg = ffmpegRef.current;
 
-    if (process.env.NODE_ENV === "development") {
-      ffmpeg.on("log", ({ message }) => {
-        console.log(message);
-      });
-    }
+    // Escrever o arquivo de vídeo
+    ffmpeg.writeFile("input.mp4", await fetchFile(videoUrl!));
 
-    // toBlobURL is used to bypass CORS issue, urls with the same
-    // domain can be used directly.
-    await ffmpeg.load({
-      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(
-        `${baseURL}/ffmpeg-core.wasm`,
-        "application/wasm"
-      ),
-    });
+    const command = `-ss ${videoStartTime.toString()} -to ${videoEndTime.toString()} -i input.mp4 -c copy output.mp4`;
+    await ffmpeg.exec(strToCommand(command));
+
+    return createUrl();
   };
 
   const cutVideo = async () => {
     const ffmpeg = ffmpegRef.current;
-
-    // temp
-    await load();
 
     // Escrever o arquivo de vídeo
     ffmpeg.writeFile("input.mp4", await fetchFile(videoUrl!));
@@ -68,17 +55,57 @@ export default function useVideoEditorActions() {
     return createUrl();
   };
 
-  const trimVideo = async () => {
+  const crop = async () => {
     const ffmpeg = ffmpegRef.current;
 
-    // temp
-    await load();
+    const numCores = navigator.hardwareConcurrency || 4;
 
-    // Escrever o arquivo de vídeo
-    ffmpeg.writeFile("input.mp4", await fetchFile(videoUrl!));
+    // Criar um array para armazenar os workers
+    let workers: any[] = [];
 
-    const command = `-ss ${videoStartTime.toString()} -to ${videoEndTime.toString()} -i input.mp4 -c copy output.mp4`;
-    await ffmpeg.exec(strToCommand(command));
+    for (let i = 0; i < numCores; i++) {
+      const worker = new Worker(new URL("./worker.worker.js", import.meta.url));
+      workers.push(worker);
+    }
+
+    const segmentDuration = videoDuration! / numCores;
+
+    // Processar cada segmento em um worker separado
+    let promises = [];
+
+    for (let i = 0; i < numCores!; i++) {
+      promises.push(
+        new Promise<void>((resolve, reject) => {
+          workers[i].onmessage = async (e: MessageEvent<string>) => {
+            ffmpeg.writeFile(`chunk-${i}.mp4`, await fetchFile(e.data));
+            resolve();
+          };
+          workers[i].onerror = reject;
+          workers[i].postMessage({
+            videoUrl,
+            fromTime: i * segmentDuration,
+            toTime: (i + 1) * segmentDuration,
+          } as DataType);
+        })
+      );
+    }
+
+    // Aguardar todos os segmentos serem processados
+    await Promise.all(promises);
+
+    ffmpeg.writeFile(
+      "list.txt",
+      Array(numCores)
+        .fill(undefined)
+        .map((_, i) => `file 'chunk-${i}.mp4'`)
+        .join("\n")
+      // ["file 'part1.mp4'", "file 'part2.mp4'"].join("\n")
+    );
+
+    // concat video chunks
+    await ffmpeg.exec(
+      strToCommand("-f concat -safe 0 -i list.txt -c copy output.mp4")
+    );
 
     return createUrl();
   };
@@ -91,9 +118,6 @@ export default function useVideoEditorActions() {
     fontcolor: string = "white"
   ) => {
     const ffmpeg = ffmpegRef.current;
-
-    // temp
-    await load();
 
     // Escrever o arquivo de vídeo
     ffmpeg.writeFile("input.mp4", await fetchFile(videoUrl!));
@@ -144,6 +168,7 @@ export default function useVideoEditorActions() {
   return {
     trimVideo,
     cutVideo,
+    crop,
     addTextOnVideo,
   };
 }

@@ -3,35 +3,17 @@ import React from "react";
 import useEditorWorkSpace from "./UseVideoEditor";
 import VideoPlaybackControl from "../VideoPlaybackControl";
 import { formatTime } from "@/utils/functions";
-import useVideoEditor from "@/hooks/useVideoEditor";
-
-export default React.memo(function EditorWorkSpace() {
-  const {
-    videoRef,
-    paused,
-    videoCurrentTime,
-    cutAction,
-    setPaused,
-    setCutAction,
-    saveVideo,
-  } = useEditorWorkSpace();
+import useVideoEditorCtx from "@/hooks/useVideoEditorCtx";
+export default function EditorWorkSpace() {
+  const { videoRef, paused, videoCurrentTime, setPaused, saveVideo } =
+    useEditorWorkSpace();
   const {
     videoDuration,
     setVideoDuration,
     videoStartTime,
     videoEndTime,
     videoName,
-  } = useVideoEditor();
-
-  React.useEffect(() => {
-    if (!videoRef.current) return;
-    videoRef.current.currentTime = videoStartTime;
-  }, [videoStartTime]);
-
-  React.useEffect(() => {
-    if (!videoRef.current) return;
-    videoRef.current.currentTime = videoEndTime;
-  }, [videoEndTime]);
+  } = useVideoEditorCtx();
 
   return (
     <div id="video-editor" className="grid place-items-center">

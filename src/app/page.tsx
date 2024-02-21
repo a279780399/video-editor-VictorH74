@@ -1,11 +1,18 @@
 "use client";
-import useVideoEditor from "@/hooks/useVideoEditor";
+import useVideoEditorCtx from "@/hooks/useVideoEditorCtx";
 import DownloadFinalVideo from "@/ui/DownloadFinalVideo";
 import EditorWorkSpace from "@/ui/EditorWorkSpace";
 import React, { ChangeEvent } from "react";
 
 export default function Home() {
   const {videoUrl, setVideoUrl, setVideoName, exportedVideoUrl, processingVideo} = useVideoEditor();
+  const {
+    videoUrl,
+    setVideoUrl,
+    setVideoName,
+    exportedVideoUrl,
+    processingVideo,
+  } = useVideoEditorCtx();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const fileInput = e.target;
@@ -28,7 +35,7 @@ export default function Home() {
         <EditorWorkSpace />
       ) : (
         <div className="border-2 h-screen grid place-items-center">
-          <input
+            <input
             onChange={handleChange}
             type="file"
             name="video"

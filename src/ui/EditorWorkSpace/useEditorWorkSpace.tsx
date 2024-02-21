@@ -1,36 +1,45 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import useVideoEditorActions from "@/hooks/UseVideoEditorActions";
-import useVideoEditor from "@/hooks/useVideoEditor";
+import useVideoEditorCtxActions from "@/hooks/useVideoEditorActions";
+import useVideoEditorCtx from "@/hooks/useVideoEditorCtx";
 import React from "react";
 
 export default function useEditorWorkSpace() {
   // performance.now();
   const videoRef = React.useRef<HTMLVideoElement>(null);
-
   const [showPlayBtn, setShowPlayBtn] = React.useState(false);
   const [paused, setPaused] = React.useState(true);
   const [videoCurrentTime, setVideoCurrentTime] = React.useState(0);
 
-  const [cutAction, setCutAction] = React.useState<"cut" | "trim">("trim");
-
-  const { trimVideo, cutVideo, addTextOnVideo } = useVideoEditorActions();
+  const { trimVideo, cutVideo, addTextOnVideo, crop } =
+    useVideoEditorCtxActions();
 
   const {
     videoUrl,
+    setProcessingVideo,
     videoStartTime,
     videoEndTime,
     videoDuration,
-    setProcessingVideo,
     setExportedVideoUrl,
-  } = useVideoEditor();
+  } = useVideoEditorCtx();
 
   React.useEffect(() => {
     if (!videoRef || !videoRef.current || !videoUrl) return;
 
     videoRef.current.src = videoUrl;
-    
+
     requestAnimationFrame(updateVideoTime);
   }, []);
+
+  React.useEffect(() => {
+    if (!videoRef.current) return;
+    videoRef.current.currentTime = videoStartTime;
+  }, [videoStartTime]);
+
+  React.useEffect(() => {
+    if (!videoRef.current) return;
+    videoRef.current.currentTime = videoEndTime;
+  }, [videoEndTime]);
+
 
   React.useEffect(() => {
     if (!videoRef || !videoRef.current) return;
@@ -50,30 +59,27 @@ export default function useEditorWorkSpace() {
     requestAnimationFrame(updateVideoTime);
   }
 
-  function saveVideo() {
+  const saveVideo = async () => {
     try {
       setProcessingVideo(true);
       if (videoStartTime > 0 || videoEndTime < videoDuration!) {
-        (cutAction === "trim" ? trimVideo : cutVideo)().then((newUrl) => {
-          setExportedVideoUrl(newUrl);
-        });
+        const newUrl = await (cutAction === "trim" ? trimVideo : cutVideo)();
+        setExportedVideoUrl(newUrl);
       }
     } catch (e) {
       console.error(e);
     } finally {
       setProcessingVideo(false);
     }
-  }
+  };
 
   return {
     paused,
     videoRef,
     showPlayBtn,
     videoCurrentTime,
-    cutAction,
     setShowPlayBtn,
     setPaused,
-    setCutAction,
     saveVideo,
   };
 }

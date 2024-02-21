@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import useWindowSize from "@/hooks/UseWindowSize";
-import useVideoEditor from "@/hooks/useVideoEditor";
+import useWindowSize from "@/hooks/useWindowSize";
+import useVideoEditorCtx from "@/hooks/useVideoEditorCtx";
 import { formatTime } from "@/utils/functions";
 import React from "react";
 
@@ -13,7 +13,7 @@ type MoveTarget =
   | "selectpartEND"
   | "rangeinput";
 
-export default function useVideoPlaybackControl(trimCutValue: "trim" | "cut") {
+export default function useVideoPlaybackControl() {
   const [frames, setFrames] = React.useState<string[]>([]);
 
   const [width] = useWindowSize();
@@ -44,7 +44,7 @@ export default function useVideoPlaybackControl(trimCutValue: "trim" | "cut") {
     setVideoStartTime,
     setVideoEndTime,
     videoDuration,
-  } = useVideoEditor();
+  } = useVideoEditorCtx();
 
   React.useEffect(() => {
     // document.addEventListener("mousemove", handleMouseMove)
@@ -132,7 +132,7 @@ export default function useVideoPlaybackControl(trimCutValue: "trim" | "cut") {
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!mouseMoveTarget) return;
-    if (!playbackControlRef || !playbackControlRef.current) return;
+    if (!playbackControlRef.current) return;
 
     const playbackControl = playbackControlRef.current;
     const rect = playbackControl.getBoundingClientRect();
@@ -163,9 +163,8 @@ export default function useVideoPlaybackControl(trimCutValue: "trim" | "cut") {
         if (abortCondition) return true;
 
         cb(ref);
-
-        ref2.current.style.right = rightDistance + "px";
-        ref3.current.style.left = leftDistance + "px";
+        ref2.current.style.right = (rightDistance / width) * 100 + "%";
+        ref3.current.style.left = (leftDistance / width) * 100 + "%";
 
         return true;
       }
@@ -183,7 +182,8 @@ export default function useVideoPlaybackControl(trimCutValue: "trim" | "cut") {
         (ref) => {
           if (ref.current) {
             setVideoStartTime(playbackControlValue);
-            ref.current.style.left = `${leftDistance}px`;
+            ref.current.style.left = `${(leftDistance / width) * 100}%`;
+            // setLeftM(leftDistance / width * 100)
           }
         }
       )
@@ -202,7 +202,8 @@ export default function useVideoPlaybackControl(trimCutValue: "trim" | "cut") {
         (ref) => {
           if (ref.current) {
             setVideoEndTime(playbackControlValue);
-            ref.current.style.right = `${rightDistance}px`;
+            ref.current.style.right = `${(rightDistance / width) * 100}%`;
+            // setRightM(rightDistance / width * 100)
           }
         }
       )

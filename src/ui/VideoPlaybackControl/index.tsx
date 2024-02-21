@@ -1,11 +1,10 @@
 import React from "react";
-import Image from "next/image";
 import useVideoPlaybackControl, {
   frameHeight,
   frameWidth,
-} from "./UseVideoPlaybackControl";
+} from "./useVideoPlaybackControl";
 import { formatTime } from "@/utils/functions";
-import useVideoEditor from "@/hooks/useVideoEditor";
+import useVideoEditorCtx from "@/hooks/useVideoEditorCtx";
 import FrameList from "@/components/FrameList";
 import PlaybackControlTrack from "@/components/PlaybackControlTrack";
 
@@ -16,7 +15,7 @@ interface Props {
   trimCutValue: "trim" | "cut";
 }
 
-export default function VideoPlayerBar(props: Props) {
+export default function VideoPlaybackControl(props: Props) {
   const {
     playbackControlContainerRef,
     playbackControlRef,
@@ -35,15 +34,15 @@ export default function VideoPlayerBar(props: Props) {
     videoEndTimeHandleMouseDown,
     setMouseMoveTarget,
     handleMouseMove,
-  } = useVideoPlaybackControl(props.trimCutValue);
-  const { videoStartTime, videoEndTime } = useVideoEditor();
+  } = useVideoPlaybackControl();
+  const { videoStartTime, videoEndTime } = useVideoEditorCtx();
 
   const trim = props.trimCutValue === "trim";
 
   return (
     <div
       ref={playbackControlContainerRef}
-      className="relative h-[58px] w-[90%] select-none"
+      className="relative h-[58px] w-full select-none"
       onMouseMove={handleMouseMove}
     >
       {/* <span className="absolute">{props.value}</span> */}
@@ -86,14 +85,26 @@ export default function VideoPlayerBar(props: Props) {
             {Array(3)
               .fill(undefined)
               .map((_, i) => (
-                <div key={i} className="size-[5px] rounded-full bg-white"></div>
+                <div key={i} className="size-1 rounded-full bg-white"></div>
               ))}
           </div>
         ))}
 
-      <PlaybackControlTrack sectionRef={videoStartSectionRef} className="left-0" show={trim} />
-      <PlaybackControlTrack sectionRef={videoCutSectionRef} show={!trim} />
-      <PlaybackControlTrack sectionRef={videoEndSectionRef} className="right-0" show={trim} />
+      <PlaybackControlTrack
+        sectionRef={videoStartSectionRef}
+        className="left-0"
+        show={trim}
+      />
+      <PlaybackControlTrack
+        sectionRef={videoCutSectionRef}
+        className="inset-x-0"
+        show={!trim}
+      />
+      <PlaybackControlTrack
+        sectionRef={videoEndSectionRef}
+        className="right-0"
+        show={trim}
+      />
 
       <input
         ref={playbackControlRef}
