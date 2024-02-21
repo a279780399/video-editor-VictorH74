@@ -20,6 +20,9 @@ export default function useEditorWorkSpace() {
     videoEndTime,
     videoDuration,
     setExportedVideoUrl,
+    cutAction,
+    volume,
+    speed,
   } = useVideoEditorCtx();
 
   React.useEffect(() => {
@@ -40,6 +43,15 @@ export default function useEditorWorkSpace() {
     videoRef.current.currentTime = videoEndTime;
   }, [videoEndTime]);
 
+  React.useEffect(() => {
+    if (!videoRef.current) return;
+    videoRef.current.volume = volume / 100;
+  }, [volume]);
+
+  React.useEffect(() => {
+    if (!videoRef.current) return;
+    videoRef.current.playbackRate = speed / 100;
+  }, [speed]);
 
   React.useEffect(() => {
     if (!videoRef || !videoRef.current) return;

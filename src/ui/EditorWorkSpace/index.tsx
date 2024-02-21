@@ -1,9 +1,17 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from "react";
-import useEditorWorkSpace from "./UseVideoEditor";
 import VideoPlaybackControl from "../VideoPlaybackControl";
 import { formatTime } from "@/utils/functions";
 import useVideoEditorCtx from "@/hooks/useVideoEditorCtx";
+import EditorTools from "@/ui/EditorTools";
+import useEditorWorkSpace from "./useEditorWorkSpace";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import PauseIcon from "@mui/icons-material/Pause";
+import SettingsIcon from "@mui/icons-material/Settings";
+import BottomControls from "../BottomControls";
+import { IconButton } from "@/components/buttons";
+import ResizableBox from "@/components/ResizableBox";
+
 export default function EditorWorkSpace() {
   const { videoRef, paused, videoCurrentTime, setPaused, saveVideo } =
     useEditorWorkSpace();
@@ -13,22 +21,29 @@ export default function EditorWorkSpace() {
     videoStartTime,
     videoEndTime,
     videoName,
+    cutAction,
+    flipH,
+    flipV,
+    resizeDimension,
+    resizePosition,
+    setVideoResolution,
+    toolAction,
   } = useVideoEditorCtx();
 
   return (
-    <div id="video-editor" className="grid place-items-center">
+    <div id="video-editor" className="grid place-items-center px-12">
+      <EditorTools />
+
       <h2>{videoName}</h2>
 
-      <button
-        className="relative"
-        onClick={() => {
-          setPaused(!paused);
-        }}
-      >
+      <div className="relative">
         <video
           width="640"
           height="360"
           className="-scale-x-100"
+          style={{
+            scale: `${flipH ? -1 : 1} ${flipV ? -1 : 1}`,
+          }}
           ref={videoRef}
           onTimeUpdate={(e) => {
             if (!videoRef || !videoRef.current) return;
@@ -45,34 +60,20 @@ export default function EditorWorkSpace() {
           }}
           onLoadedMetadata={(e) => {
             setVideoDuration(e.currentTarget.duration);
+            setVideoResolution({
+              w: e.currentTarget.videoWidth,
+              h: e.currentTarget.videoHeight,
+            });
           }}
         >
           <source type="video/mp4" />
           Your browser does not support the video tag.
         </video>
-      </button>
+        {toolAction === "crop" && <ResizableBox />}
+      </div>
 
       {videoDuration && <h3>duração do vídeo: {formatTime(videoDuration)}</h3>}
       <h3>tempo atual: {formatTime(videoCurrentTime)}</h3>
-      <div className="flex gap-2 my-4">
-        <button
-          onClick={() => {
-            setCutAction((prev) => (prev === "trim" ? "cut" : "trim"));
-          }}
-          className="bg-sky-500 hover:bg-sky-400 duration-200 text-white p-2 rounded-lg font-medium"
-        >
-          Cortar / Aparar
-        </button>
-        {/* 
-
-      */}
-        <button
-          onClick={saveVideo}
-          className="bg-pink-400 hover:bg-pink-300 duration-200 text-white p-2 rounded-lg font-medium"
-        >
-          Salvar
-        </button>
-      </div>
 
       <VideoPlaybackControl
         value={videoRef?.current?.currentTime || 0}
@@ -83,6 +84,30 @@ export default function EditorWorkSpace() {
           videoRef.current.currentTime = Number(e.currentTarget.value) / 1000;
         }}
       />
+
+      <div className="w-full mt-14 flex gap-4">
+        <div className="flex gap-4 flex-1">
+          <IconButton
+            className="px-7 py-2"
+            icon={paused ? PlayArrowIcon : PauseIcon}
+            rounded
+            onClick={() => {
+              setPaused(!paused);
+            }}
+          />
+          <BottomControls />
+        </div>
+
+        <div className="flex gap-2">
+          <IconButton icon={SettingsIcon} rounded onClick={() => {}} />
+          <button
+            onClick={saveVideo}
+            className="bg-pink-400 hover:bg-pink-300 duration-200 text-white p-2 rounded-lg font-medium"
+          >
+            Salvar
+          </button>
+        </div>
+      </div>
     </div>
   );
-});
+}
