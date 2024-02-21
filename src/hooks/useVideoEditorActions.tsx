@@ -1,12 +1,39 @@
-import { fetchFile, toBlobURL } from "@ffmpeg/util";
-import useVideoEditorCtx from "./useVideoEditorCtx";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
+import useVideoEditorCtx from "./useVideoEditorCtx";
+import { fetchFile, toBlobURL } from "@ffmpeg/util";
+import React from "react";
 
 export type DataType = { videoUrl: string; fromTime: number; toTime: number };
 
 export default function useVideoEditorCtxActions() {
-  const { videoUrl, videoStartTime, videoEndTime, ffmpegRef, videoDuration } =
+  const ffmpegRef = React.useRef(new FFmpeg());
+  const { videoUrl, videoStartTime, videoEndTime, videoDuration } =
     useVideoEditorCtx();
+
+  React.useEffect(() => {
+    load();
+  }, []);
+
+  const load = async () => {
+    const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
+    const ffmpeg = ffmpegRef.current;
+
+    if (process.env.NODE_ENV === "development") {
+      ffmpeg.on("log", ({ message }) => {
+        console.log(message);
+      });
+    }
+
+    // toBlobURL is used to bypass CORS issue, urls with the same
+    // domain can be used directly.
+    await ffmpeg.load({
+      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
+      wasmURL: await toBlobURL(
+        `${baseURL}/ffmpeg-core.wasm`,
+        "application/wasm"
+      ),
+    });
+  };
 
   const strToCommand = (commandStr: string) => commandStr.split(" ");
 

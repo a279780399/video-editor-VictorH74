@@ -1,8 +1,6 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 
-
-
 self.onmessage = async (e) => {
     const { videoUrl, fromTime, toTime } = e.data
 

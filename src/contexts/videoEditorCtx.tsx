@@ -1,11 +1,8 @@
 "use client";
 import React from "react";
 import { ToolActionType } from "@/ui/EditorTools/useEditorTools";
-import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { toBlobURL } from "@ffmpeg/util";
 
 interface Props {
-  ffmpegRef: React.MutableRefObject<FFmpeg>;
   cutAction: "cut" | "trim";
   cropArea: CropAreaType;
   rotate: 0 | 1 | 2 | 3;
@@ -67,7 +64,6 @@ export default function VideoEditorProvider({
 }: {
   children: React.ReactElement;
 }) {
-  const ffmpegRef = React.useRef(new FFmpeg());
 
   // actions
   const [cutAction, setCutAction] = React.useState<"cut" | "trim">("trim");
@@ -112,35 +108,9 @@ export default function VideoEditorProvider({
     if (videoDuration) setVideoEndTime(videoDuration);
   }, [videoDuration]);
 
-  React.useEffect(() => {
-    load();
-  }, []);
-
-  const load = async () => {
-    const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
-    const ffmpeg = ffmpegRef.current;
-
-    if (process.env.NODE_ENV === "development") {
-      ffmpeg.on("log", ({ message }) => {
-        console.log(message);
-      });
-    }
-
-    // toBlobURL is used to bypass CORS issue, urls with the same
-    // domain can be used directly.
-    await ffmpeg.load({
-      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(
-        `${baseURL}/ffmpeg-core.wasm`,
-        "application/wasm"
-      ),
-    });
-  };
-
   return (
     <videoEditorCtx.Provider
       value={{
-        ffmpegRef,
         cutAction,
         addImage,
         addText,
