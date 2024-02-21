@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
-import useWindowSize from "@/hooks/UseWindowSize";
+import useWindowSize from "@/hooks/useWindowSize";
 import { formatTime } from "@/utils/functions";
 import Image from "next/image";
 import React from "react";
