@@ -9,7 +9,7 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import SettingsIcon from "@mui/icons-material/Settings";
 import BottomControls from "../BottomControls";
-import { IconButton } from "@/components/buttons";
+import { ClearBtn, IconButton } from "@/components/buttons";
 import ResizableBox from "@/components/ResizableBox";
 
 export default function EditorWorkSpace() {
@@ -32,7 +32,10 @@ export default function EditorWorkSpace() {
 
   return (
     <div id="video-editor" className="grid place-items-center px-12">
-      <EditorTools />
+      <div className="relative w-full p-4 flex justify-center mt-7">
+        <EditorTools />
+        <ClearBtn />
+      </div>
 
       <h2>{videoName}</h2>
 
