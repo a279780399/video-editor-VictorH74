@@ -1,6 +1,8 @@
 import { SvgIconTypeMap } from "@mui/material";
 import { OverridableComponent } from "@mui/material/OverridableComponent";
+import ClearIcon from "@mui/icons-material/Clear";
 import React from "react";
+import useVideoEditorCtx from "@/hooks/useVideoEditorCtx";
 
 interface ButtonProps {
   first?: boolean;
@@ -24,50 +26,55 @@ const defaultBg = "#00000080";
 const hoverBg = "#0000009b";
 const selectedBg = "#000000a7";
 
-const createButton =
-  (props: Omit<ButtonProps, "children">) =>
-  // eslint-disable-next-line react/display-name
-  ({ children }: { children: React.ReactElement }) =>
-    (
-      <button
-        style={{
-          backgroundColor: props.selected ? selectedBg : defaultBg,
-        }}
-        className={`duration-150 p-3 text-white ${
-          props.rounded
-            ? "rounded-lg"
-            : props.first
-            ? "rounded-s-lg"
-            : props.last
-            ? "rounded-e-lg"
-            : ""
-        } ${props.className}`}
-        onClick={props.onClick}
-        onMouseOver={(e) => (e.currentTarget.style.backgroundColor = hoverBg)}
-        onMouseOut={(e) =>
-          (e.currentTarget.style.backgroundColor = props.selected
-            ? selectedBg
-            : defaultBg)
-        }
-      >
-        {children}
-      </button>
-    );
+const BaseBtn: React.FC<ButtonProps> = (props) => (
+  <button
+    style={{
+      backgroundColor: props.selected ? selectedBg : defaultBg,
+    }}
+    className={`duration-150 p-3 text-white ${
+      props.rounded
+        ? "rounded-lg"
+        : props.first
+        ? "rounded-s-lg"
+        : props.last
+        ? "rounded-e-lg"
+        : ""
+    } ${props.className}`}
+    onClick={props.onClick}
+    onMouseOver={(e) => (e.currentTarget.style.backgroundColor = hoverBg)}
+    onMouseOut={(e) =>
+      (e.currentTarget.style.backgroundColor = props.selected
+        ? selectedBg
+        : defaultBg)
+    }
+  >
+    {props.children}
+  </button>
+);
 
-export const Button: React.FC<ButtonProps> = (props) => {
-  return createButton(props)({children: props.children as any});
-};
+export const Button: React.FC<ButtonProps> = (props) => <BaseBtn {...props} />;
 
 export const IconButton: React.FC<IconButtonProps> = ({
   icon: Icon,
+  label,
   ...rest
-}) => {
-  return createButton(rest)({
-    children: (
-      <>
-        <Icon className={rest.iconClassName} />
-        {rest.label && <span className="ml-2">{rest.label}</span>}
-      </>
-    ),
-  });
+}) => (
+  <BaseBtn {...rest}>
+    <div>
+      <Icon className={rest.iconClassName} />
+      {label && <span className="ml-2">{label}</span>}
+    </div>
+  </BaseBtn>
+);
+
+export const ClearBtn = () => {
+  const { setVideoUrl } = useVideoEditorCtx();
+  return (
+    <button
+      className="absolute right-0 top-1/2 -translate-y-1/2 text-[#6d6d6d]"
+      onClick={() => setVideoUrl(null)}
+    >
+      <ClearIcon sx={{ fontSize: 35 }} />
+    </button>
+  );
 };

@@ -5,14 +5,19 @@ import useEditorTools from "./useEditorTools";
 import useVideoEditorCtx from "@/hooks/useVideoEditorCtx";
 import { IconButton } from "@/components/buttons";
 
+const defaultBg = "#00000080";
+const hoverBg = "#0000009b";
+const selectedBg = "#000000a7";
+
 export default function EditorTools() {
   const { tools } = useEditorTools();
   const { toolAction, setToolAction } = useVideoEditorCtx();
 
   return (
-    <div className="w-full p-4 flex justify-center gap-[2px] mt-7">
+    <div className="flex gap-[2px]">
       {tools.map(({ icon: Icon, ...rest }, i) => (
-        <Tooltip title={rest.label} placement="bottom" key={i}>
+        <Tooltip title={rest.label} placement="top" key={i}>
+          {/* 
           <IconButton
             icon={Icon}
             first={i === 0}
@@ -21,7 +26,32 @@ export default function EditorTools() {
             onClick={() => {
               if (rest.action !== toolAction) setToolAction(rest.action);
             }}
-          />
+          /> */}
+          <button
+            style={{
+              backgroundColor:
+                toolAction === rest.action ? selectedBg : defaultBg,
+            }}
+            onClick={() => {
+              if (rest.action !== toolAction) setToolAction(rest.action);
+            }}
+            className={`duration-150 p-3 text-white ${
+              i === 0
+                ? "rounded-s-lg"
+                : i === tools.length - 1
+                ? "rounded-e-lg"
+                : ""
+            } `}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.backgroundColor = hoverBg)
+            }
+            onMouseOut={(e) =>
+              (e.currentTarget.style.backgroundColor =
+                toolAction === rest.action ? selectedBg : defaultBg)
+            }
+          >
+            <Icon />
+          </button>
         </Tooltip>
       ))}
     </div>
