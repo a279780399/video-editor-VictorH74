@@ -43,7 +43,6 @@ export default function EditorWorkSpace() {
         <video
           width="640"
           height="360"
-          className="-scale-x-100"
           style={{
             scale: `${flipH ? -1 : 1} ${flipV ? -1 : 1}`,
           }}

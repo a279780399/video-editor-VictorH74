@@ -9,6 +9,10 @@ interface Props {
 export default function ResizableBox() {
   const {
     containerRef,
+    maskWestRef,
+    maskNorthRef,
+    maskEastRef,
+    maskSouthRef,
     resizableRef,
     resizeEnd,
     resizeStart,
@@ -17,7 +21,7 @@ export default function ResizableBox() {
     onDraggableMove,
     onResizableMove,
   } = useResizableBox();
-  const {cropArea} = useVideoEditorCtx()
+  const { cropArea } = useVideoEditorCtx();
   return (
     <div
       ref={containerRef}
@@ -26,14 +30,20 @@ export default function ResizableBox() {
       onMouseMove={onResizableMove}
       className="absolute inset-0 select-none"
     >
+      {/* Masks */}
+      <div ref={maskWestRef} className="absolute left-0 bg-[#0000006b]" />
+      <div ref={maskNorthRef} className="absolute top-0 inset-x-0 bg-[#0000006b]" />
+      <div ref={maskEastRef} className="absolute right-0 bg-[#0000006b]" />
+      <div ref={maskSouthRef} className="absolute bottom-0 inset-x-0 bg-[#0000006b]" />
+
       <div
         ref={resizableRef}
         className="border-2 border-slate-400 absolute cursor-grab"
         style={{
-          left: cropArea.x ,
-          top: cropArea.y ,
-          right: 0 ,
-          bottom: 0 ,
+          left: cropArea.x,
+          top: cropArea.y,
+          right: "0",
+          bottom: 0,
           // width: cropArea.w + "px",
           // height: cropArea.h + "px",
         }}
