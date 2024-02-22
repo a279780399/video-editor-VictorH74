@@ -55,7 +55,12 @@ type TextBoxType = {
   content: string;
 };
 type ImageBoxType = { w: number; h: number; x: number; y: number; src: string };
-type CropAreaType = { w: number; h: number; x: number; y: number };
+type CropAreaType = {
+  left: string;
+  top: string;
+  right: string;
+  bottom: string;
+};
 
 export const videoEditorCtx = React.createContext<Props | null>(null);
 
@@ -64,14 +69,13 @@ export default function VideoEditorProvider({
 }: {
   children: React.ReactElement;
 }) {
-
   // actions
   const [cutAction, setCutAction] = React.useState<"cut" | "trim">("trim");
   const [cropArea, setCropArea] = React.useState<CropAreaType>({
-    w: 0,
-    h: 0,
-    x: 0,
-    y: 0,
+    left: "0%",
+    top: "0%",
+    right: "0%",
+    bottom: "0%",
   });
   const [rotate, setRotate] = React.useState<0 | 1 | 2 | 3>(0);
   const [flipH, setFlipH] = React.useState(false);

@@ -31,6 +31,28 @@ export default function useResizableBox() {
 
   const { setCropArea } = useVideoEditorCtx();
 
+  // setup mask positions
+  React.useEffect(() => {
+    if (!containerRef.current || !resizableRef.current) return;
+    const { left, top, right, bottom } = resizableRef.current!.style;
+
+    const [floatLeft, floatTop, floatRight, floatBottom] = [
+      left,
+      top,
+      right,
+      bottom,
+    ].map((d) => parseFloat(d));
+
+    maskNorthRef.current!.style.bottom = 100 - floatTop + "%";
+    maskEastRef.current!.style.left = 100 - floatRight + "%";
+    maskWestRef.current!.style.right = 100 - floatLeft + "%";
+    maskSouthRef.current!.style.top = 100 - floatBottom + "%";
+    maskWestRef.current!.style.top = top;
+    maskEastRef.current!.style.top = top;
+    maskWestRef.current!.style.bottom = bottom;
+    maskEastRef.current!.style.bottom = bottom;
+  }, []);
+
   const moveMaskByDirection = (d: DirectionType, newValue: number) => {
     const containerMeasure =
       containerRef.current!.getBoundingClientRect()[
@@ -62,20 +84,31 @@ export default function useResizableBox() {
     }
   };
 
-  const resize = (direction: DirectionType, mouse: number) => {
+  const getCropArea = () => {
+    const { left, top, right, bottom } = resizableRef.current!.style;
+
+    return {
+      left,
+      top,
+      right,
+      bottom,
+    };
+  };
+
+  const resize = (direction: DirectionType, mouseP: number) => {
     const r = resizableRef.current!;
     const isYAxis = ["top", "bottom"].includes(direction);
     const cRect = containerRef.current!.getBoundingClientRect();
     const measure = cRect[isYAxis ? "height" : "width"];
 
-    let distance = mouse - (isYAxis ? cRect.top : cRect[direction]);
+    let distance = mouseP - (isYAxis ? cRect.top : cRect[direction]);
+
     if (direction === "right") distance *= -1;
 
-    const bottom = direction === "bottom";
-    const newValue = bottom ? measure - distance : distance;
+    const isBottom = direction === "bottom";
+    const newValue = isBottom ? measure - distance : distance;
     const newValuePercent = (newValue / measure) * 100;
 
-    // min width / height
     const minDimension = 10;
     if (
       r[isYAxis ? "offsetHeight" : "offsetWidth"] < minDimension &&
@@ -92,18 +125,6 @@ export default function useResizableBox() {
 
     r.style[direction] = newValuePercent + "%";
     moveMaskByDirection(direction, newValue);
-  };
-
-  const getCropArea = () => {
-    const resizableRect = resizableRef.current!.getBoundingClientRect();
-    const containerRect = containerRef.current!.getBoundingClientRect();
-
-    const w = resizableRect.width;
-    const h = resizableRect.height;
-    const x = resizableRect.left - containerRect.left;
-    const y = resizableRect.top - containerRect.top;
-
-    return { w, h, x, y };
   };
 
   const resizeDirection = (
@@ -144,8 +165,7 @@ export default function useResizableBox() {
     if (!onResize) return;
     setOnResize(undefined);
     document.body.style.cursor = "default";
-    console.log(getCropArea());
-    setCropArea(getCropArea()!);
+    setCropArea(getCropArea());
   };
 
   const dragStart = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -161,7 +181,7 @@ export default function useResizableBox() {
 
   const dragEnd = () => {
     if (onResize || !onDrag) return;
-    setCropArea(getCropArea()!);
+    setCropArea(getCropArea());
     setOnDrag(false);
     document.body.style.cursor = "default";
   };
@@ -209,8 +229,8 @@ export default function useResizableBox() {
         r.style.left = `${(newLeft / containerRect.width) * 100}%`;
         r.style.right = `${(newRight / containerRect.width) * 100}%`;
 
-        moveMaskByDirection("left", newLeft)
-        moveMaskByDirection("right", newRight)
+        moveMaskByDirection("left", newLeft);
+        moveMaskByDirection("right", newRight);
       }
 
       if (newTop < 0) {
@@ -221,10 +241,10 @@ export default function useResizableBox() {
         ms.style.top = "100%";
       } else {
         r.style.top = `${(newTop / containerRect.height) * 100}%`;
-        moveMaskByDirection("top", newTop)
+        moveMaskByDirection("top", newTop);
 
         r.style.bottom = `${(newBottom / containerRect.height) * 100}%`;
-        moveMaskByDirection("bottom", newBottom)
+        moveMaskByDirection("bottom", newBottom);
       }
 
       setLastP({

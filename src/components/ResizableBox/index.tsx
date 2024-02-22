@@ -1,10 +1,7 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React from "react";
 import useResizableBox, { HandlerType } from "./useResizableBox";
 import useVideoEditorCtx from "@/hooks/useVideoEditorCtx";
-
-interface Props {
-  containerRef: React.RefObject<HTMLDivElement>;
-}
 
 export default function ResizableBox() {
   const {
@@ -22,6 +19,17 @@ export default function ResizableBox() {
     onResizableMove,
   } = useResizableBox();
   const { cropArea } = useVideoEditorCtx();
+
+  const style = React.useMemo(
+    () => ({
+      left: cropArea.left,
+      top: cropArea.top,
+      right: cropArea.right,
+      bottom: cropArea.bottom,
+    }),
+    []
+  );
+
   return (
     <div
       ref={containerRef}
@@ -32,21 +40,20 @@ export default function ResizableBox() {
     >
       {/* Masks */}
       <div ref={maskWestRef} className="absolute left-0 bg-[#0000006b]" />
-      <div ref={maskNorthRef} className="absolute top-0 inset-x-0 bg-[#0000006b]" />
+      <div
+        ref={maskNorthRef}
+        className="absolute top-0 inset-x-0 bg-[#0000006b]"
+      />
       <div ref={maskEastRef} className="absolute right-0 bg-[#0000006b]" />
-      <div ref={maskSouthRef} className="absolute bottom-0 inset-x-0 bg-[#0000006b]" />
+      <div
+        ref={maskSouthRef}
+        className="absolute bottom-0 inset-x-0 bg-[#0000006b]"
+      />
 
       <div
         ref={resizableRef}
-        className="border-2 border-slate-400 absolute cursor-grab"
-        style={{
-          left: cropArea.x,
-          top: cropArea.y,
-          right: "0",
-          bottom: 0,
-          // width: cropArea.w + "px",
-          // height: cropArea.h + "px",
-        }}
+        style={style}
+        className={`border-2 border-slate-400 absolute cursor-grab `}
         onMouseUp={dragEnd}
         onMouseLeave={dragEnd}
         onMouseDown={dragStart}
