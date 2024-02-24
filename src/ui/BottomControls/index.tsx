@@ -1,5 +1,4 @@
 import React from "react";
-import useVideoEditorCtx from "@/hooks/useVideoEditorCtx";
 import {
   AddImage,
   AddText,
@@ -12,6 +11,7 @@ import {
   Volume,
 } from "./actions";
 import { ToolActionType } from "../EditorTools/useEditorTools";
+import useEditorToolsCtx from "@/hooks/useEditorToolsCtx";
 
 const components: Record<
   Exclude<ToolActionType, undefined>,
@@ -29,7 +29,7 @@ const components: Record<
 };
 
 export default function BottomControls() {
-  const { toolAction } = useVideoEditorCtx();
+  const { toolAction } = useEditorToolsCtx();
 
   if (!toolAction) return null;
   return components[toolAction];

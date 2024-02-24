@@ -1,6 +1,7 @@
 "use client";
 
-import useVideoEditorCtx from "@/hooks/useVideoEditorCtx";
+import useOutputVideoCtx from "@/hooks/useOutputVideoCtx";
+import useVideoMetadataCtx from "@/hooks/useVideoMetadataCtx";
 
 
 // background: linear-gradient(90deg, rgba(255,191,205,1) 10%, rgba(0,134,255,1) 47%, rgba(255,0,78,1) 100%);
@@ -8,7 +9,8 @@ import useVideoEditorCtx from "@/hooks/useVideoEditorCtx";
 // bg-gradient-to-r from-indigo-500 from-10% via-sky-400 via-47% to-red-600 to-100%
 
 export default function DownloadFinalVideo() {
-  const { exportedVideoUrl, videoName } = useVideoEditorCtx();
+  const { exportedVideoUrl } = useOutputVideoCtx();
+  const { videoName } = useVideoMetadataCtx();
 
   return (
     <div className="h-screen grid place-items-center">

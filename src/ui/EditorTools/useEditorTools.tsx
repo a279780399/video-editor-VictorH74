@@ -10,6 +10,7 @@ import SpeedIcon from "@mui/icons-material/Speed";
 import React from "react";
 import { OverridableComponent } from "@mui/material/OverridableComponent";
 import { SvgIconTypeMap } from "@mui/material";
+import useEditorToolsCtx from "@/hooks/useEditorToolsCtx";
 
 export type ToolActionType =
   | "cut_trim"
@@ -32,26 +33,30 @@ type ToolType = {
 };
 
 export default function useEditorTools() {
+  const {
+    toolAction,
+    setToolAction,
+  } = useEditorToolsCtx();
   const tools = React.useMemo<ToolType[]>(
     () => [
       {
         icon: ContentCutIcon,
-        label: "Cut or Trim",
+        label: "Cortar ou Aparar",
         action: "cut_trim",
       },
       {
         icon: CropIcon,
-        label: "Crop",
+        label: "Cortar vídeo",
         action: "crop",
       },
       {
         icon: RotateLeftIcon,
-        label: "Rotate",
+        label: "Girar",
         action: "rotate",
       },
       {
         icon: FlipIcon,
-        label: "Flip",
+        label: "Inverter",
         action: "flip",
       },
       {
@@ -61,27 +66,27 @@ export default function useEditorTools() {
       },
       {
         icon: SpeedIcon,
-        label: "Speed",
+        label: "Velocidade",
         action: "speed",
       },
       {
         icon: AspectRatioIcon,
-        label: "Resize",
+        label: "Redimensionar",
         action: "resize",
       },
       {
         icon: TextIncreaseIcon,
-        label: "Add Text",
+        label: "Add Texto",
         action: "add_text",
       },
       {
         icon: AddPhotoAlternateIcon,
-        label: "Add Image",
+        label: "Add Imagem",
         action: "add_image",
       },
     ],
     []
   );
 
-  return { tools };
+  return { tools, toolAction, setToolAction };
 }

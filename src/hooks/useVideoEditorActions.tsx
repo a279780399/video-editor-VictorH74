@@ -1,14 +1,15 @@
 import { FFmpeg } from "@ffmpeg/ffmpeg";
-import useVideoEditorCtx from "./useVideoEditorCtx";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import React from "react";
+import useVideoMetadataCtx from "./useVideoMetadataCtx";
+import useEditorToolsCtx from "./useEditorToolsCtx";
 
 export type DataType = { videoUrl: string; fromTime: number; toTime: number };
 
 export default function useVideoEditorCtxActions() {
   const ffmpegRef = React.useRef(new FFmpeg());
-  const { videoUrl, videoStartTime, videoEndTime, videoDuration } =
-    useVideoEditorCtx();
+  const { videoUrl } = useVideoMetadataCtx();
+  const { videoStartTime, videoEndTime, videoDuration } = useEditorToolsCtx();
 
   React.useEffect(() => {
     load();

@@ -2,7 +2,7 @@ import { SvgIconTypeMap } from "@mui/material";
 import { OverridableComponent } from "@mui/material/OverridableComponent";
 import ClearIcon from "@mui/icons-material/Clear";
 import React from "react";
-import useVideoEditorCtx from "@/hooks/useVideoEditorCtx";
+import useVideoMetadataCtx from "@/hooks/useVideoMetadataCtx";
 
 interface ButtonProps {
   first?: boolean;
@@ -67,8 +67,14 @@ export const IconButton: React.FC<IconButtonProps> = ({
   </BaseBtn>
 );
 
-export const ClearBtn = () => {
-  const { setVideoUrl } = useVideoEditorCtx();
+// eslint-disable-next-line react/display-name
+export const ClearBtn = React.memo(() => {
+  const { setVideoUrl } = useVideoMetadataCtx();
+
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === "development") console.log("ClearBtn");
+  });
+
   return (
     <button
       className="absolute right-0 top-1/2 -translate-y-1/2 text-[#6d6d6d]"
@@ -77,4 +83,4 @@ export const ClearBtn = () => {
       <ClearIcon sx={{ fontSize: 35 }} />
     </button>
   );
-};
+});

@@ -4,7 +4,6 @@ import useVideoPlaybackControl, {
   frameWidth,
 } from "./useVideoPlaybackControl";
 import { formatTime } from "@/utils/functions";
-import useVideoEditorCtx from "@/hooks/useVideoEditorCtx";
 import FrameList from "@/components/FrameList";
 import PlaybackControlTrack from "@/components/PlaybackControlTrack";
 
@@ -34,8 +33,9 @@ export default function VideoPlaybackControl(props: Props) {
     videoEndTimeHandleMouseDown,
     setMouseMoveTarget,
     handleMouseMove,
+    videoStartTime,
+    videoEndTime,
   } = useVideoPlaybackControl();
-  const { videoStartTime, videoEndTime } = useVideoEditorCtx();
 
   const trim = props.trimCutValue === "trim";
 

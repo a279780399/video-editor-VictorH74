@@ -2,16 +2,18 @@ import React from "react";
 
 import Tooltip from "@mui/material/Tooltip";
 import useEditorTools from "./useEditorTools";
-import useVideoEditorCtx from "@/hooks/useVideoEditorCtx";
-import { IconButton } from "@/components/buttons";
+// import { IconButton } from "@/components/buttons";
 
 const defaultBg = "#00000080";
 const hoverBg = "#0000009b";
 const selectedBg = "#000000a7";
 
-export default function EditorTools() {
-  const { tools } = useEditorTools();
-  const { toolAction, setToolAction } = useVideoEditorCtx();
+export default React.memo(function EditorTools() {
+  const { tools, setToolAction, toolAction } = useEditorTools();
+
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === "development") console.log("EditorTools");
+  });
 
   return (
     <div className="flex gap-[2px]">
@@ -56,4 +58,4 @@ export default function EditorTools() {
       ))}
     </div>
   );
-}
+});

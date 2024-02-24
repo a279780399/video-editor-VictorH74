@@ -1,8 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import useWindowSize from "@/hooks/useWindowSize";
-import useVideoEditorCtx from "@/hooks/useVideoEditorCtx";
 import { formatTime } from "@/utils/functions";
 import React from "react";
+import useEditorToolsCtx from "@/hooks/useEditorToolsCtx";
+import useVideoMetadataCtx from "@/hooks/useVideoMetadataCtx";
 
 export const frameHeight = 60;
 export const frameWidth = 98;
@@ -38,13 +39,13 @@ export default function useVideoPlaybackControl() {
   const [mouseMoveTarget, setMouseMoveTarget] = React.useState<MoveTarget>();
 
   const {
-    videoUrl,
     videoStartTime,
     videoEndTime,
     setVideoStartTime,
     setVideoEndTime,
     videoDuration,
-  } = useVideoEditorCtx();
+  } = useEditorToolsCtx();
+  const { videoUrl } = useVideoMetadataCtx();
 
   React.useEffect(() => {
     // document.addEventListener("mousemove", handleMouseMove)
@@ -274,5 +275,7 @@ export default function useVideoPlaybackControl() {
     toggleShowIndicator,
     videoStartTimeHandleMouseDown,
     videoEndTimeHandleMouseDown,
+    videoStartTime,
+    videoEndTime,
   };
 }

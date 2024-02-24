@@ -12,9 +12,11 @@ import VolumeDown from "@mui/icons-material/VolumeDown";
 import VolumeUp from "@mui/icons-material/VolumeUp";
 import React from "react";
 import { Button, IconButton } from "@/components/buttons";
+import useEditorToolsCtx from "@/hooks/useEditorToolsCtx";
+import useVideoMetadataCtx from "@/hooks/useVideoMetadataCtx";
 
 export const Trim = () => {
-  const { setCutAction } = useVideoEditorCtx();
+  const { setCutAction } = useEditorToolsCtx();
 
   return (
     <div className="flex">
@@ -95,7 +97,8 @@ const resolutionsObj = {
 };
 export const Resize = () => {
   const [resolutions, setResolutions] = React.useState<number[]>([]);
-  const { videoResolution } = useVideoEditorCtx();
+  const { videoResolution } = useVideoMetadataCtx();
+  const { finalResolution, setFinalResolution } = useEditorToolsCtx();
 
   React.useEffect(() => {
     if (!videoResolution) return;
@@ -127,7 +130,7 @@ export const Resize = () => {
 };
 
 export const Flip = () => {
-  const { setFlipH, setFlipV, flipH, flipV } = useVideoEditorCtx();
+  const { setFlipH, setFlipV, flipH, flipV } = useEditorToolsCtx();
 
   return (
     <div className="flex gap-[2px]">
@@ -172,7 +175,7 @@ export const Rotate = () => {
 };
 
 export const Volume = () => {
-  const { volume, setVolume } = useVideoEditorCtx();
+  const { volume, setVolume } = useEditorToolsCtx();
   const handleChange = (event: Event, newValue: number | number[]) => {
     setVolume(newValue as number);
   };
@@ -199,7 +202,7 @@ export const Volume = () => {
 };
 
 export const Speed = () => {
-  const { speed, setSpeed } = useVideoEditorCtx();
+  const { speed, setSpeed } = useEditorToolsCtx();
   const handleChange = (event: Event, newValue: number | number[]) => {
     setSpeed(newValue as number);
   };
@@ -226,7 +229,7 @@ export const Speed = () => {
 };
 
 export const AddText = () => {
-  const { setAddText } = useVideoEditorCtx();
+  const { setTextList } = useEditorToolsCtx();
 
   return (
     <div className="flex">
@@ -234,10 +237,7 @@ export const AddText = () => {
         icon={TextIncreaseIcon}
         rounded
         onClick={() => {
-          setAddText((prev) => [
-            ...prev,
-            { content: "", h: 100, w: 100, x: 0, y: 0 },
-          ]);
+          alert("Não funcional");
           // setAddText((prev) => [
           //   ...prev,
           //   (<TextContainer />),
@@ -250,7 +250,7 @@ export const AddText = () => {
 };
 
 export const AddImage = () => {
-  const { setAddImage } = useVideoEditorCtx();
+  const { setImageList } = useEditorToolsCtx();
 
   return (
     <div className="flex">
@@ -258,7 +258,8 @@ export const AddImage = () => {
         icon={AddPhotoAlternateIcon}
         rounded
         onClick={() => {
-          // setAddImage((prev) => [
+          alert("Não funcional");
+          // setImageList((prev) => [
           //   ...prev,
           //   (<ImageContainer />),
           // ]);
