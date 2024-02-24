@@ -61,24 +61,27 @@ export default function SelectVideoFile() {
         </div>
       </div>
 
+      <div className="text-center">
       <div
         className="relative"
         style={{ pointerEvents: onDrag ? "none" : "all" }}
       >
         <label
-          className="inline-block py-3 px-4 cursor-pointer rounded-md bg-gradient-to-r from-red-200 from-2% via-blue-500 via-40% to-cyan-400 to-100% text-base font-bold text-white"
+            className="inline-block py-3 px-10 hover:scale-105 duration-150 cursor-pointer rounded-md bg-gradient-to-r from-blue-500 from-1% to-cyan-400 to-90% text-base font-semibold uppercase text-white"
           htmlFor="video-uploader"
         >
-          Carregar vídeo
+            Abrir vídeo
         </label>
         <input
-          className="absolute -z-[1] top-1 left-1 text-transparent"
+            className="absolute -z-[1] top-1 left-1 opacity-0"
           onChange={handleSelectChange}
           type="file"
           name="video"
           id="video-uploader"
           accept=".mp4,.webm"
         />
+        </div>
+        <p className="mt-3 text-slate-600 text-lg">Ou arraste um vídeo para essa tela</p>
       </div>
     </div>
   );
