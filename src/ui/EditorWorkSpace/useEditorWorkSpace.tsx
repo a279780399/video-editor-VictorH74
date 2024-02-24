@@ -1,6 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+import useEditorToolsCtx from "@/hooks/useEditorToolsCtx";
+import useOutputVideoCtx from "@/hooks/useOutputVideoCtx";
 import useVideoEditorCtxActions from "@/hooks/useVideoEditorActions";
-import useVideoEditorCtx from "@/hooks/useVideoEditorCtx";
+import useVideoMetadataCtx from "@/hooks/useVideoMetadataCtx";
 import React from "react";
 
 export default function useEditorWorkSpace() {
@@ -10,20 +12,24 @@ export default function useEditorWorkSpace() {
   const [paused, setPaused] = React.useState(true);
   const [videoCurrentTime, setVideoCurrentTime] = React.useState(0);
 
+  const { videoName, setVideoResolution, videoUrl } = useVideoMetadataCtx();
+  const {
+    flipH,
+    flipV,
+    cutAction,
+    toolAction,
+    videoDuration,
+    videoStartTime,
+    videoEndTime,
+    setVideoDuration,
+    volume,
+    speed,
+  } = useEditorToolsCtx();
+
   const { trimVideo, cutVideo, addTextOnVideo, crop } =
     useVideoEditorCtxActions();
 
-  const {
-    videoUrl,
-    setProcessingVideo,
-    videoStartTime,
-    videoEndTime,
-    videoDuration,
-    setExportedVideoUrl,
-    cutAction,
-    volume,
-    speed,
-  } = useVideoEditorCtx();
+  const { setExportedVideoUrl, setProcessingVideo } = useOutputVideoCtx();
 
   React.useEffect(() => {
     if (!videoRef || !videoRef.current || !videoUrl) return;
@@ -93,5 +99,17 @@ export default function useEditorWorkSpace() {
     setShowPlayBtn,
     setPaused,
     saveVideo,
+    videoName,
+    setVideoResolution,
+    flipH,
+    flipV,
+    cutAction,
+    toolAction,
+    videoDuration,
+    videoStartTime,
+    videoEndTime,
+    setVideoDuration,
+    volume,
+    speed,
   };
 }

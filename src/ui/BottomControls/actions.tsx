@@ -1,5 +1,4 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import useVideoEditorCtx from "@/hooks/useVideoEditorCtx";
 import RotateLeftIcon from "@mui/icons-material/RotateLeft";
 import RotateRightIcon from "@mui/icons-material/RotateRight";
 import FlipIcon from "@mui/icons-material/Flip";
@@ -14,6 +13,7 @@ import React from "react";
 import { Button, IconButton } from "@/components/buttons";
 import useEditorToolsCtx from "@/hooks/useEditorToolsCtx";
 import useVideoMetadataCtx from "@/hooks/useVideoMetadataCtx";
+import useResizableBoxCtx from "@/hooks/useResizableBoxCtx";
 
 export const Trim = () => {
   const { setCutAction } = useEditorToolsCtx();
@@ -33,60 +33,81 @@ export const Trim = () => {
 };
 
 export const Crop = () => {
-  const array = React.useMemo(
+  const { containerRef, resizableRef, updateMasks, updateCropArea } =
+    useResizableBoxCtx();
+
+  const cropByProportion = (proportion: [number, number]) => {
+    const r = resizableRef.current!;
+    const { width, height } = r.getBoundingClientRect();
+    const cWidth = containerRef.current!.getBoundingClientRect().width;
+
+    const newWidth = (height / proportion[1]) * proportion[0];
+
+    // distribute space x to left / right
+    const xSpacing = (width - newWidth) / 2;
+    const xValue = (xSpacing / cWidth) * 100;
+
+    // get current values of resizable left / right parsed to float
+    const directions = ["left", "right"] as const;
+    const prevX = directions.map((d) => parseFloat(r.style[d]));
+
+    const decrement = (i: number) =>
+      prevX[i] + xValue - (prevX[(i - 1) * -1] + xValue) * -1;
+
+    // case left or right is out of bounds, adjust the opposite side
+    if (prevX[0] + xValue < 0) {
+      r.style.left = "0%";
+      r.style.right = decrement(0) + "%";
+    } else if (prevX[1] + xValue < 0) {
+      r.style.right = "0%";
+      r.style.left = decrement(1) + "%";
+    } else {
+      r.style.left = prevX[0] + xValue + "%";
+      r.style.right = prevX[1] + xValue + "%";
+    }
+
+    updateCropArea();
+    updateMasks();
+  };
+
+  const proportions = React.useMemo<[number, number][]>(
     () => [
-      {
-        label: "Original",
-        func: () => {
-          alert("Não funcional");
-        },
-      },
-      {
-        label: "1:1",
-        func: () => {
-          alert("Não funcional");
-        },
-      },
-      {
-        label: "9:16",
-        func: () => {
-          alert("Não funcional");
-        },
-      },
-      {
-        label: "4:3",
-        func: () => {
-          alert("Não funcional");
-        },
-      },
-      {
-        label: "3:4",
-        func: () => {
-          alert("Não funcional");
-        },
-      },
-      {
-        label: "Custom",
-        func: () => {
-          alert("Não funcional");
-        },
-      },
+      [1, 1],
+      [9, 16],
+      [4, 3],
+      [3, 4],
     ],
     []
   );
 
   return (
     <div className="flex gap-[2px]">
-      {array.map(({ label, func }, i) => (
-        <Button
-          key={label}
-          first={i === 0}
-          last={i === array.length - 1}
-          onClick={func}
-        >
-          {label}
+      <Button
+        first
+        onClick={() => {
+          (["left", "top", "right", "bottom"] as const).forEach(
+            (d) => (resizableRef.current!.style[d] = "0%")
+          );
+          updateCropArea();
+          updateMasks();
+        }}
+      >
+        Original
+      </Button>
+      {proportions.map((p) => (
+        <Button key={p.join(":")} onClick={() => cropByProportion(p)}>
+          {p.join(":")}
         </Button>
       ))}
+      <Button
+        last
+        onClick={() => {
+          if (process.env.NODE_ENV === "production") alert("Não funcional");
+          else alert("TODO: Permitir ajustar a dimensão manualmente");
+        }}
+      >
+        Custom
+      </Button>
     </div>
   );
 };
@@ -118,8 +139,11 @@ export const Resize = () => {
           key={resolutionH}
           first={i === 0}
           last={i === resolutions.length - 1}
+          selected={
+            (i === 0 && !finalResolution) || finalResolution === resolutionH
+          }
           onClick={() => {
-            alert("Não funcional");
+            setFinalResolution(i === 0 ? null : resolutionH);
           }}
         >
           {i === 0 ? "Original" : resolutionH.toString() + "p"}

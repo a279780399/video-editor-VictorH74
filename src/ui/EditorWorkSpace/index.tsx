@@ -2,7 +2,6 @@
 import React from "react";
 import VideoPlaybackControl from "../VideoPlaybackControl";
 import { formatTime } from "@/utils/functions";
-import useVideoEditorCtx from "@/hooks/useVideoEditorCtx";
 import EditorTools from "@/ui/EditorTools";
 import useEditorWorkSpace from "./useEditorWorkSpace";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
@@ -13,22 +12,23 @@ import { ClearBtn, IconButton } from "@/components/buttons";
 import ResizableBox from "@/components/ResizableBox";
 
 export default function EditorWorkSpace() {
-  const { videoRef, paused, videoCurrentTime, setPaused, saveVideo } =
-    useEditorWorkSpace();
   const {
-    videoDuration,
-    setVideoDuration,
-    videoStartTime,
-    videoEndTime,
-    videoName,
-    cutAction,
+    videoRef,
+    paused,
+    videoCurrentTime,
+    setPaused,
+    saveVideo,
     flipH,
     flipV,
-    resizeDimension,
-    resizePosition,
-    setVideoResolution,
+    cutAction,
     toolAction,
-  } = useVideoEditorCtx();
+    videoDuration,
+    videoStartTime,
+    videoEndTime,
+    setVideoDuration,
+    videoName,
+    setVideoResolution,
+  } = useEditorWorkSpace();
 
   return (
     <div id="video-editor" className="grid place-items-center px-12">

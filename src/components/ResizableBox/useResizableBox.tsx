@@ -1,5 +1,7 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
-import useVideoEditorCtx from "@/hooks/useVideoEditorCtx";
+import useEditorToolsCtx from "@/hooks/useEditorToolsCtx";
+import useResizableBoxCtx from "@/hooks/useResizableBoxCtx";
 import React from "react";
 
 export type HandlerType =
@@ -15,13 +17,6 @@ export type HandlerType =
 type DirectionType = "top" | "bottom" | "left" | "right";
 
 export default function useResizableBox() {
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const maskWestRef = React.useRef<HTMLDivElement>(null);
-  const maskNorthRef = React.useRef<HTMLDivElement>(null);
-  const maskEastRef = React.useRef<HTMLDivElement>(null);
-  const maskSouthRef = React.useRef<HTMLDivElement>(null);
-  const resizableRef = React.useRef<HTMLDivElement>(null);
-
   const [onResize, setOnResize] = React.useState<HandlerType>();
   const [onDrag, setOnDrag] = React.useState(false);
   const [lastP, setLastP] = React.useState({ left: 0, top: 0 });
@@ -29,28 +24,21 @@ export default function useResizableBox() {
     Record<DirectionType, number>
   >({ bottom: 0, left: 0, right: 0, top: 0 });
 
-  const { setCropArea } = useVideoEditorCtx();
+  const { cropArea } = useEditorToolsCtx();
+  const {
+    containerRef,
+    resizableRef,
+    maskEastRef,
+    maskNorthRef,
+    maskSouthRef,
+    maskWestRef,
+    updateCropArea,
+    updateMasks,
+  } = useResizableBoxCtx();
 
   // setup mask positions
   React.useEffect(() => {
-    if (!containerRef.current || !resizableRef.current) return;
-    const { left, top, right, bottom } = resizableRef.current!.style;
-
-    const [floatLeft, floatTop, floatRight, floatBottom] = [
-      left,
-      top,
-      right,
-      bottom,
-    ].map((d) => parseFloat(d));
-
-    maskNorthRef.current!.style.bottom = 100 - floatTop + "%";
-    maskEastRef.current!.style.left = 100 - floatRight + "%";
-    maskWestRef.current!.style.right = 100 - floatLeft + "%";
-    maskSouthRef.current!.style.top = 100 - floatBottom + "%";
-    maskWestRef.current!.style.top = top;
-    maskEastRef.current!.style.top = top;
-    maskWestRef.current!.style.bottom = bottom;
-    maskEastRef.current!.style.bottom = bottom;
+    updateMasks();
   }, []);
 
   const moveMaskByDirection = (d: DirectionType, newValue: number) => {
@@ -82,17 +70,6 @@ export default function useResizableBox() {
         maskEastRef.current!.style.bottom = value;
         break;
     }
-  };
-
-  const getCropArea = () => {
-    const { left, top, right, bottom } = resizableRef.current!.style;
-
-    return {
-      left,
-      top,
-      right,
-      bottom,
-    };
   };
 
   const resize = (direction: DirectionType, mouseP: number) => {
@@ -165,7 +142,11 @@ export default function useResizableBox() {
     if (!onResize) return;
     setOnResize(undefined);
     document.body.style.cursor = "default";
-    setCropArea(getCropArea());
+    updateCropArea();
+  };
+
+  const onResizableMove = (e: React.MouseEvent) => {
+    if (onResize) resizeDirection([e.clientX, e.clientY])[onResize]();
   };
 
   const dragStart = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -181,13 +162,9 @@ export default function useResizableBox() {
 
   const dragEnd = () => {
     if (onResize || !onDrag) return;
-    setCropArea(getCropArea());
+    updateCropArea();
     setOnDrag(false);
     document.body.style.cursor = "default";
-  };
-
-  const onResizableMove = (e: React.MouseEvent) => {
-    if (onResize) resizeDirection([e.clientX, e.clientY])[onResize]();
   };
 
   const onDraggableMove = (e: React.MouseEvent) => {
@@ -206,19 +183,19 @@ export default function useResizableBox() {
       const xFactor = e.clientX - containerRect.left - lastP.left;
       const yFactor = e.clientY - containerRect.top - lastP.top;
 
-      // prev values
+      // previous resizable box diretions values
       const top = resizableRect.top - containerRect.top;
       const bottom = containerRect.height - (top + resizableRect.height);
       const left = resizableRect.left - containerRect.left;
       const right = containerRect.width - (left + resizableRect.width);
 
-      // new values
+      // new resizable box diretions values
       const newLeft = left + xFactor;
       const newRight = right - xFactor;
       const newTop = top + yFactor;
       const newBottom = bottom - yFactor;
 
-      // border constraints
+      // X position border constraints
       if (newLeft < 0) {
         r.style.left = "0%";
         mw.style.right = "100%";
@@ -233,6 +210,7 @@ export default function useResizableBox() {
         moveMaskByDirection("right", newRight);
       }
 
+      // Y position border constraints
       if (newTop < 0) {
         r.style.top = "0%";
         mn.style.bottom = "100%";
@@ -256,11 +234,12 @@ export default function useResizableBox() {
 
   return {
     containerRef,
+    resizableRef,
+    cropArea,
     maskWestRef,
     maskNorthRef,
     maskEastRef,
     maskSouthRef,
-    resizableRef,
     resizeStart,
     resizeEnd,
     dragStart,

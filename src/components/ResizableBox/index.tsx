@@ -1,24 +1,27 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from "react";
 import useResizableBox, { HandlerType } from "./useResizableBox";
-import useVideoEditorCtx from "@/hooks/useVideoEditorCtx";
 
 export default function ResizableBox() {
   const {
-    containerRef,
     maskWestRef,
     maskNorthRef,
     maskEastRef,
     maskSouthRef,
-    resizableRef,
     resizeEnd,
     resizeStart,
     dragEnd,
     dragStart,
     onDraggableMove,
     onResizableMove,
+    cropArea,
+    containerRef,
+    resizableRef,
   } = useResizableBox();
-  const { cropArea } = useVideoEditorCtx();
+
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === "development") console.log("ResizableBox");
+  });
 
   const style = React.useMemo(
     () => ({
