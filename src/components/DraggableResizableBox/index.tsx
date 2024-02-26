@@ -1,65 +1,35 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from "react";
-import useResizableBox, { HandlerType } from "./useResizableBox";
+import useDraggableResizableBox, {
+  DraggableResizableBoxProps,
+} from "./useDraggableResizableBox";
+import { HandlerType } from "@/types";
 
-export default function ResizableBox() {
+export default function DraggableResizableBox(
+  props: DraggableResizableBoxProps
+) {
   const {
-    maskWestRef,
-    maskNorthRef,
-    maskEastRef,
-    maskSouthRef,
-    resizeEnd,
-    resizeStart,
-    dragEnd,
-    dragStart,
+    handleResizeStart,
+    handleDragStart,
     onDraggableMove,
-    onResizableMove,
-    cropArea,
-    containerRef,
+    handleDragEnd,
     resizableRef,
-  } = useResizableBox();
+  } = useDraggableResizableBox(props);
 
   React.useEffect(() => {
     if (process.env.NODE_ENV === "development") console.log("ResizableBox");
   });
 
-  const style = React.useMemo(
-    () => ({
-      left: cropArea.left,
-      top: cropArea.top,
-      right: cropArea.right,
-      bottom: cropArea.bottom,
-    }),
-    []
-  );
-
   return (
-    <div
-      ref={containerRef}
-      onMouseUp={resizeEnd}
-      onMouseLeave={resizeEnd}
-      onMouseMove={onResizableMove}
-      className="absolute inset-0 select-none"
-    >
-      {/* Masks */}
-      <div ref={maskWestRef} className="absolute left-0 bg-[#0000006b]" />
-      <div
-        ref={maskNorthRef}
-        className="absolute top-0 inset-x-0 bg-[#0000006b]"
-      />
-      <div ref={maskEastRef} className="absolute right-0 bg-[#0000006b]" />
-      <div
-        ref={maskSouthRef}
-        className="absolute bottom-0 inset-x-0 bg-[#0000006b]"
-      />
-
+    <>
+      {props.masks && props.masks}
       <div
         ref={resizableRef}
-        style={style}
-        className={`border-2 border-slate-400 absolute cursor-grab `}
-        onMouseUp={dragEnd}
-        onMouseLeave={dragEnd}
-        onMouseDown={dragStart}
+        style={props.directions}
+        className={`border-2 border-slate-400 absolute cursor-grab text-wrap p`}
+        onMouseUp={handleDragEnd}
+        onMouseLeave={handleDragEnd}
+        onMouseDown={handleDragStart}
         onMouseMove={onDraggableMove}
       >
         {[
@@ -74,8 +44,9 @@ export default function ResizableBox() {
           },
           {
             direction: "ne",
-            classStr:
-              "right-0 translate-x-1/2 -translate-y-1/2 cursor-nesw-resize",
+            classStr: `right-0 translate-x-1/2 -translate-y-1/2 ${
+              props.onRemove ? "cursor-default" : "cursor-nesw-resize"
+            } `,
           },
           {
             direction: "e",
@@ -105,11 +76,21 @@ export default function ResizableBox() {
         ].map(({ direction, classStr }) => (
           <span
             key={direction}
-            onMouseDown={(e) => resizeStart(e, direction as HandlerType)}
-            className={`bg-green-300 w-3 h-3 rounded-full absolute ${classStr}`}
+            onMouseDown={(e) =>
+              props.onRemove && direction === "ne"
+                ? props.onRemove()
+                : handleResizeStart(e, direction as HandlerType)
+            }
+            className={`${
+              props.onRemove && direction === "ne"
+                ? "bg-red-500"
+                : "bg-cyan-300"
+            }  w-3 h-3 rounded-full absolute ${classStr}`}
           />
         ))}
+        {props.children}
       </div>
-    </div>
+    </>
+    // </div>
   );
 }

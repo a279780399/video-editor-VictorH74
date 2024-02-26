@@ -5,19 +5,16 @@ import React from "react";
 import SelectVideoFile from "@/ui/SelectVideoFile";
 import useOutputVideoCtx from "@/hooks/useOutputVideoCtx";
 import useVideoMetadataCtx from "@/hooks/useVideoMetadataCtx";
+import ProgressingPage from "@/ui/ProgressingPage";
 
 export default function Home() {
   const { videoUrl } = useVideoMetadataCtx();
   const { exportedVideoUrl, processingVideo } = useOutputVideoCtx();
 
-  if (exportedVideoUrl) return <DownloadFinalVideo />;
+  // return <ProgressingPage />;
 
-  if (processingVideo)
-    return (
-      <div className="w-screen h-screen grid place-items-center">
-        <h1>Loading...</h1>
-      </div>
-    );
+  if (exportedVideoUrl) return <DownloadFinalVideo />;
+  if (processingVideo) return <ProgressingPage />;
 
   return <main>{videoUrl ? <EditorWorkSpace /> : <SelectVideoFile />}</main>;
 }

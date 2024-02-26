@@ -3,13 +3,25 @@ import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import React from "react";
 import useVideoMetadataCtx from "./useVideoMetadataCtx";
 import useEditorToolsCtx from "./useEditorToolsCtx";
+import useOutputVideoCtx from "./useOutputVideoCtx";
 
-export type DataType = { videoUrl: string; fromTime: number; toTime: number };
+export type DataType = {
+  videoUrl: string;
+  command: string;
+};
 
 export default function useVideoEditorCtxActions() {
   const ffmpegRef = React.useRef(new FFmpeg());
-  const { videoUrl } = useVideoMetadataCtx();
-  const { videoStartTime, videoEndTime, videoDuration } = useEditorToolsCtx();
+  const { videoUrl, videoResolution } = useVideoMetadataCtx();
+  const {
+    videoStartTime,
+    videoEndTime,
+    videoDuration,
+    cropArea,
+    flipH,
+    flipV,
+  } = useEditorToolsCtx();
+  const { setProgress } = useOutputVideoCtx();
 
   React.useEffect(() => {
     load();
@@ -24,6 +36,11 @@ export default function useVideoEditorCtxActions() {
         console.log(message);
       });
     }
+
+    ffmpeg.on("progress", ({ progress }) => {
+      console.log(progress);
+      setProgress([progress]);
+    });
 
     // toBlobURL is used to bypass CORS issue, urls with the same
     // domain can be used directly.
@@ -88,6 +105,8 @@ export default function useVideoEditorCtxActions() {
 
     const numCores = navigator.hardwareConcurrency || 4;
 
+    setProgress(() => Array(numCores).fill(0));
+
     // Criar um array para armazenar os workers
     let workers: any[] = [];
 
@@ -96,7 +115,7 @@ export default function useVideoEditorCtxActions() {
       workers.push(worker);
     }
 
-    const segmentDuration = videoDuration! / numCores;
+    const segmentDuration = (videoDuration! / numCores).toFixed(4);
 
     // Processar cada segmento em um worker separado
     let promises = [];
@@ -104,15 +123,35 @@ export default function useVideoEditorCtxActions() {
     for (let i = 0; i < numCores!; i++) {
       promises.push(
         new Promise<void>((resolve, reject) => {
-          workers[i].onmessage = async (e: MessageEvent<string>) => {
-            ffmpeg.writeFile(`chunk-${i}.mp4`, await fetchFile(e.data));
-            resolve();
+          workers[i].onmessage = async (
+            e: MessageEvent<{ type: string; data: string | number }>
+          ) => {
+            if (e.data.type === "finished") {
+              ffmpeg.writeFile(
+                `chunk-${i}.mp4`,
+                await fetchFile(e.data.data as string)
+              );
+              resolve();
+            } else if (e.data.type === "progress") {
+              setProgress((prev) => {
+                let newProgress = [...prev];
+                newProgress[i] = Number(e.data.data);
+                return newProgress;
+              });
+            }
           };
           workers[i].onerror = reject;
+
+          const fromTime = `-ss ${i * parseFloat(segmentDuration)}`;
+          const toTime = i + 1 === numCores ? "" : ` -t ${segmentDuration}`;
+          const command = `-i input.mp4 ${fromTime}${toTime} -c copy output.mp4`;
+
           workers[i].postMessage({
             videoUrl,
-            fromTime: i * segmentDuration,
-            toTime: (i + 1) * segmentDuration,
+            command,
+            cropArea,
+            videoWidth: videoResolution!.w,
+            videoHeight: videoResolution!.h,
           } as DataType);
         })
       );
@@ -134,6 +173,26 @@ export default function useVideoEditorCtxActions() {
     await ffmpeg.exec(
       strToCommand("-f concat -safe 0 -i list.txt -c copy output.mp4")
     );
+
+    return createUrl();
+  };
+
+  const flip = async () => {
+    const ffmpeg = ffmpegRef.current;
+
+    // Escrever o arquivo de vídeo
+    ffmpeg.writeFile("input.mp4", await fetchFile(videoUrl!));
+
+    let flipType = [];
+
+    if (flipH) flipType.push(["hflip"]);
+    if (flipV) flipType.push(["vflip"]);
+
+    const command = `-i input.mp4 -vf ${flipType.join(
+      ","
+    )} -c:a copy output.mp4`;
+
+    await ffmpeg.exec(strToCommand(command));
 
     return createUrl();
   };
@@ -197,6 +256,7 @@ export default function useVideoEditorCtxActions() {
     trimVideo,
     cutVideo,
     crop,
+    flip,
     addTextOnVideo,
   };
 }

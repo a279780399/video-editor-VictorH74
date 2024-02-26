@@ -8,11 +8,13 @@ import React from "react";
 export default function useEditorWorkSpace() {
   // performance.now();
   const videoRef = React.useRef<HTMLVideoElement>(null);
+  const textBoxContainerRef = React.useRef<HTMLDivElement>(null);
   const [showPlayBtn, setShowPlayBtn] = React.useState(false);
   const [paused, setPaused] = React.useState(true);
   const [videoCurrentTime, setVideoCurrentTime] = React.useState(0);
 
-  const { videoName, setVideoResolution, videoUrl } = useVideoMetadataCtx();
+  const { videoName, setVideoResolution, videoUrl, videoResolution } =
+    useVideoMetadataCtx();
   const {
     flipH,
     flipV,
@@ -24,9 +26,12 @@ export default function useEditorWorkSpace() {
     setVideoDuration,
     volume,
     speed,
+    imageList,
+    textList,
+    cropArea,
   } = useEditorToolsCtx();
 
-  const { trimVideo, cutVideo, addTextOnVideo, crop } =
+  const { trimVideo, cutVideo, addTextOnVideo, crop, flip } =
     useVideoEditorCtxActions();
 
   const { setExportedVideoUrl, setProcessingVideo } = useOutputVideoCtx();
@@ -80,10 +85,8 @@ export default function useEditorWorkSpace() {
   const saveVideo = async () => {
     try {
       setProcessingVideo(true);
-      if (videoStartTime > 0 || videoEndTime < videoDuration!) {
-        const newUrl = await (cutAction === "trim" ? trimVideo : cutVideo)();
-        setExportedVideoUrl(newUrl);
-      }
+      const newUrl = await crop();
+      setExportedVideoUrl(newUrl);
     } catch (e) {
       console.error(e);
     } finally {
@@ -100,6 +103,8 @@ export default function useEditorWorkSpace() {
     setPaused,
     saveVideo,
     videoName,
+    textList,
+    imageList,
     setVideoResolution,
     flipH,
     flipV,
@@ -111,5 +116,6 @@ export default function useEditorWorkSpace() {
     setVideoDuration,
     volume,
     speed,
+    textBoxContainerRef,
   };
 }

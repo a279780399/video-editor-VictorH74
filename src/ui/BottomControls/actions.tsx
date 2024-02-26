@@ -13,7 +13,47 @@ import React from "react";
 import { Button, IconButton } from "@/components/buttons";
 import useEditorToolsCtx from "@/hooks/useEditorToolsCtx";
 import useVideoMetadataCtx from "@/hooks/useVideoMetadataCtx";
-import useResizableBoxCtx from "@/hooks/useResizableBoxCtx";
+import { styled } from "@mui/material/styles";
+import useCropBoxCtx from "@/hooks/useCropBoxCtx";
+
+const PrettoSlider = styled(Slider)({
+  color: "#38BDF8",
+  height: 8,
+  "& .MuiSlider-track": {
+    border: "none",
+  },
+  "& .MuiSlider-thumb": {
+    height: 24,
+    width: 24,
+    backgroundColor: "#fff",
+    border: "2px solid currentColor",
+    "&:focus, &:hover, &.Mui-active, &.Mui-focusVisible": {
+      boxShadow: "inherit",
+    },
+    "&::before": {
+      display: "none",
+    },
+  },
+  "& .MuiSlider-valueLabel": {
+    lineHeight: 1.2,
+    fontSize: 12,
+    background: "unset",
+    padding: 0,
+    width: 32,
+    height: 32,
+    borderRadius: "50% 50% 50% 0",
+    backgroundColor: "#38BDF8",
+    transformOrigin: "bottom left",
+    transform: "translate(50%, -100%) rotate(-45deg) scale(0)",
+    "&::before": { display: "none" },
+    "&.MuiSlider-valueLabelOpen": {
+      transform: "translate(50%, -100%) rotate(-45deg) scale(1)",
+    },
+    "& > *": {
+      transform: "rotate(45deg)",
+    },
+  },
+});
 
 export const Trim = () => {
   const { setCutAction } = useEditorToolsCtx();
@@ -33,13 +73,15 @@ export const Trim = () => {
 };
 
 export const Crop = () => {
-  const { containerRef, resizableRef, updateMasks, updateCropArea } =
-    useResizableBoxCtx();
+  const { updateMasks, dimentions, setDimentions } = useCropBoxCtx();
+  const { setCropArea, cropArea } = useEditorToolsCtx();
 
   const cropByProportion = (proportion: [number, number]) => {
-    const r = resizableRef.current!;
-    const { width, height } = r.getBoundingClientRect();
-    const cWidth = containerRef.current!.getBoundingClientRect().width;
+    const cWidth = dimentions![0][0];
+    const [width, height] = dimentions![1];
+
+    let finalLeft: string;
+    let finalRight: string;
 
     const newWidth = (height / proportion[1]) * proportion[0];
 
@@ -49,25 +91,30 @@ export const Crop = () => {
 
     // get current values of resizable left / right parsed to float
     const directions = ["left", "right"] as const;
-    const prevX = directions.map((d) => parseFloat(r.style[d]));
+    const prevX = directions.map((d) => parseFloat(cropArea[d]));
 
     const decrement = (i: number) =>
       prevX[i] + xValue - (prevX[(i - 1) * -1] + xValue) * -1;
 
     // case left or right is out of bounds, adjust the opposite side
     if (prevX[0] + xValue < 0) {
-      r.style.left = "0%";
-      r.style.right = decrement(0) + "%";
+      finalLeft = "0%";
+      finalRight = decrement(0) + "%";
     } else if (prevX[1] + xValue < 0) {
-      r.style.right = "0%";
-      r.style.left = decrement(1) + "%";
+      finalRight = "0%";
+      finalLeft = decrement(1) + "%";
     } else {
-      r.style.left = prevX[0] + xValue + "%";
-      r.style.right = prevX[1] + xValue + "%";
+      finalLeft = prevX[0] + xValue + "%";
+      finalRight = prevX[1] + xValue + "%";
     }
 
-    updateCropArea();
-    updateMasks();
+    setCropArea((prev) => ({ ...prev, left: finalLeft, right: finalRight }));
+    setDimentions((prev) => {
+      prev![1][0] = newWidth;
+
+      return prev;
+    });
+    updateMasks({ ...cropArea, left: finalLeft, right: finalRight });
   };
 
   const proportions = React.useMemo<[number, number][]>(
@@ -85,11 +132,12 @@ export const Crop = () => {
       <Button
         first
         onClick={() => {
+          let obj: any = {};
           (["left", "top", "right", "bottom"] as const).forEach(
-            (d) => (resizableRef.current!.style[d] = "0%")
+            (d) => (obj[d] = "0%")
           );
-          updateCropArea();
-          updateMasks();
+          setCropArea(obj);
+          updateMasks(obj);
         }}
       >
         Original
@@ -212,7 +260,7 @@ export const Volume = () => {
       alignItems="center"
     >
       <VolumeDown />
-      <Slider
+      <PrettoSlider
         aria-label="Volume"
         min={0}
         value={volume}
@@ -220,7 +268,7 @@ export const Volume = () => {
         onChange={handleChange}
       />
       <VolumeUp />
-      <p className="text-base font-bold">{volume}%</p>
+      <p className="text-base font-bold w-16 text-center">{volume}%</p>
     </Stack>
   );
 };
@@ -239,7 +287,7 @@ export const Speed = () => {
       alignItems="center"
     >
       <VolumeDown />
-      <Slider
+      <PrettoSlider
         aria-label="Volume"
         min={25}
         value={speed}
@@ -247,7 +295,7 @@ export const Speed = () => {
         onChange={handleChange}
       />
       <VolumeUp />
-      <p className="text-base font-bold">{speed / 100}x</p>
+      <p className="text-base font-bold w-16 text-center">{speed / 100}x</p>
     </Stack>
   );
 };
@@ -261,13 +309,15 @@ export const AddText = () => {
         icon={TextIncreaseIcon}
         rounded
         onClick={() => {
-          alert("Não funcional");
-          // setAddText((prev) => [
-          //   ...prev,
-          //   (<TextContainer />),
-          // ]);
+          setTextList((prev) => [
+            ...prev,
+            {
+              content: "Digite seu texto aqui",
+              directions: { top: "0$", left: "0%" },
+            },
+          ]);
         }}
-        label="Add Text"
+        label="Adicionar Texto"
       />
     </div>
   );
@@ -288,7 +338,7 @@ export const AddImage = () => {
           //   (<ImageContainer />),
           // ]);
         }}
-        label="Add Image"
+        label="Adicionar Imagem"
       />
     </div>
   );

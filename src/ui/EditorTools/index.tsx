@@ -21,7 +21,7 @@ export default React.memo(function EditorTools() {
         <div className="relative" key={i}>
           <div
             style={{ opacity: rest.modified ? 1 : 0 }}
-            className="duration-150 contents-[''] size-2 absolute right-1 top-1 bg-green-300 rounded-full"
+            className="duration-150 contents-[''] size-[6px] absolute right-1 top-1 bg-cyan-300 rounded-full"
           />
           <Tooltip title={rest.label} placement="top">
             {/* 

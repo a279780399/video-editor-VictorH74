@@ -9,7 +9,8 @@ import PauseIcon from "@mui/icons-material/Pause";
 import SettingsIcon from "@mui/icons-material/Settings";
 import BottomControls from "../BottomControls";
 import { ClearBtn, IconButton } from "@/components/buttons";
-import ResizableBox from "@/components/ResizableBox";
+import CropBox from "@/components/CropBox";
+import TextBox from "@/components/TextBox";
 
 export default function EditorWorkSpace() {
   const {
@@ -28,6 +29,8 @@ export default function EditorWorkSpace() {
     setVideoDuration,
     videoName,
     setVideoResolution,
+    textList,
+    textBoxContainerRef,
   } = useEditorWorkSpace();
 
   return (
@@ -71,7 +74,17 @@ export default function EditorWorkSpace() {
           <source type="video/mp4" />
           Your browser does not support the video tag.
         </video>
-        {toolAction === "crop" && <ResizableBox />}
+        <div className="absolute inset-0" ref={textBoxContainerRef}>
+          {textList.map((t, i) => (
+            <TextBox
+              containerRef={textBoxContainerRef}
+              key={i}
+              index={i}
+              textBox={t}
+            />
+          ))}
+        </div>
+        {toolAction === "crop" && <CropBox />}
       </div>
 
       {videoDuration && <h3>duração do vídeo: {formatTime(videoDuration)}</h3>}
@@ -104,7 +117,7 @@ export default function EditorWorkSpace() {
           <IconButton icon={SettingsIcon} rounded onClick={() => {}} />
           <button
             onClick={saveVideo}
-            className="bg-pink-400 hover:bg-pink-300 duration-200 text-white p-2 rounded-lg font-medium"
+            className="bg-gradient-to-r from-blue-500 from-1% to-cyan-400 to-90% hover:brightness-105 duration-200 text-white py-2 px-6 rounded-lg font-medium"
           >
             Salvar
           </button>

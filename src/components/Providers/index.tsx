@@ -1,6 +1,6 @@
 import EditorToolsProvider from "@/contexts/editorToolsCtx";
 import OutputVideoProvider from "@/contexts/outputVideoCtx";
-import ResizableBoxProvider from "@/contexts/resizableBoxCtx";
+import CropBoxProvider from "@/contexts/cropBoxCtx";
 import VideoMetadataProvider from "@/contexts/videoMetadataCtx";
 import React from "react";
 
@@ -11,11 +11,11 @@ interface Props {
 export default function Providers({ children }: Props) {
   return (
     <EditorToolsProvider>
-      <ResizableBoxProvider>
+      <CropBoxProvider>
         <VideoMetadataProvider>
           <OutputVideoProvider>{children}</OutputVideoProvider>
         </VideoMetadataProvider>
-      </ResizableBoxProvider>
+      </CropBoxProvider>
     </EditorToolsProvider>
   );
 }
