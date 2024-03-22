@@ -52,7 +52,7 @@ export default function VideoPlaybackControl(props: Props) {
         .map((_, i) => (
           <div
             key={i}
-            className={`absolute top-0 bottom-0 w-2 bg-sky-400 z-50 flex flex-col justify-center items-center gap-1 ${
+            className={`absolute top-0 bottom-0 w-2 hover:brightness-110 bg-[#176B87] z-50 flex flex-col justify-center items-center gap-1 ${
               i === 1 && "right-0"
             }`}
             style={{

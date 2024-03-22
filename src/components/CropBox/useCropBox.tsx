@@ -7,7 +7,7 @@ import React from "react";
 
 export default function useCropBox() {
   const containerRef = React.useRef<HTMLDivElement>(null)
-  const { cropArea, setCropArea } = useEditorToolsCtx();
+  const { cropArea, setCropArea, toolAction } = useEditorToolsCtx();
   const {
     maskEastRef,
     maskNorthRef,
@@ -60,6 +60,7 @@ export default function useCropBox() {
     moveMaskByDirection,
     setCropArea,
     updateMasks,
-    setDimentions
+    setDimentions,
+    toolAction,
   };
 }

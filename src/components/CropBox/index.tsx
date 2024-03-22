@@ -14,11 +14,13 @@ export default function CropBox() {
     updateMasks,
     setDimentions,
     containerRef,
+    toolAction
   } = useCropBox();
 
   return (
     <div ref={containerRef} className="absolute inset-0 select-none">
     <DraggableResizableBox
+    displayBorder={toolAction === "crop"}
     containerRef={containerRef}
       setup={(d, containerD, resizableD) => {
         updateMasks(d);
@@ -26,15 +28,15 @@ export default function CropBox() {
       }}
       masks={
         <>
-          <div ref={maskWestRef} className="absolute left-0 bg-[#0000006b]" />
+          <div ref={maskWestRef} className="absolute left-0 bg-[#00000094]" />
           <div
             ref={maskNorthRef}
-            className="absolute top-0 inset-x-0 bg-[#0000006b]"
+            className="absolute top-0 inset-x-0 bg-[#00000094]"
           />
-          <div ref={maskEastRef} className="absolute right-0 bg-[#0000006b]" />
+          <div ref={maskEastRef} className="absolute right-0 bg-[#00000094]" />
           <div
             ref={maskSouthRef}
-            className="absolute bottom-0 inset-x-0 bg-[#0000006b]"
+            className="absolute bottom-0 inset-x-0 bg-[#00000094]"
           />
         </>
       }

@@ -22,16 +22,16 @@ interface IconButtonProps extends Omit<ButtonProps, "children"> {
   label?: string;
 }
 
-const defaultBg = "#00000080";
-const hoverBg = "#0000009b";
-const selectedBg = "#000000a7";
+export const defaultBg = "#00000060";
+export const hoverBg = "#176B87";
+export const selectedBg = "#176B87";
 
 const BaseBtn: React.FC<ButtonProps> = (props) => (
   <button
     style={{
       backgroundColor: props.selected ? selectedBg : defaultBg,
     }}
-    className={`duration-150 p-3 text-white ${
+    className={`duration-150 p-3 text-gray-200 ${
       props.rounded
         ? "rounded-lg"
         : props.first
@@ -77,7 +77,7 @@ export const ClearBtn = React.memo(() => {
 
   return (
     <button
-      className="absolute right-0 top-1/2 -translate-y-1/2 text-[#6d6d6d]"
+      className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-200"
       onClick={() => setVideoUrl(null)}
     >
       <ClearIcon sx={{ fontSize: 35 }} />

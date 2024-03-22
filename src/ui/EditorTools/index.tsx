@@ -2,11 +2,8 @@ import React from "react";
 
 import Tooltip from "@mui/material/Tooltip";
 import useEditorTools from "./useEditorTools";
+import { defaultBg, hoverBg, selectedBg } from "@/components/buttons";
 // import { IconButton } from "@/components/buttons";
-
-const defaultBg = "#00000080";
-const hoverBg = "#0000009b";
-const selectedBg = "#000000a7";
 
 export default React.memo(function EditorTools() {
   const { tools, setToolAction, toolAction } = useEditorTools();
@@ -21,7 +18,7 @@ export default React.memo(function EditorTools() {
         <div className="relative" key={i}>
           <div
             style={{ opacity: rest.modified ? 1 : 0 }}
-            className="duration-150 contents-[''] size-[6px] absolute right-1 top-1 bg-cyan-300 rounded-full"
+            className="duration-150 contents-[''] size-[6px] absolute right-1 top-1 bg-[#64CCC5] rounded-full"
           />
           <Tooltip title={rest.label} placement="top">
             {/* 
@@ -42,7 +39,7 @@ export default React.memo(function EditorTools() {
               onClick={() => {
                 if (rest.action !== toolAction) setToolAction(rest.action);
               }}
-              className={`duration-150 p-3 text-white ${
+              className={`duration-150 p-3 text-gray-200 ${
                 i === 0
                   ? "rounded-s-lg"
                   : i === tools.length - 1

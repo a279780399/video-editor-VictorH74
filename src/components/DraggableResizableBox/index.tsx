@@ -4,6 +4,7 @@ import useDraggableResizableBox, {
   DraggableResizableBoxProps,
 } from "./useDraggableResizableBox";
 import { HandlerType } from "@/types";
+import { twMerge } from "tailwind-merge";
 
 export default function DraggableResizableBox(
   props: DraggableResizableBoxProps
@@ -23,10 +24,17 @@ export default function DraggableResizableBox(
   return (
     <>
       {props.masks && props.masks}
+
       <div
         ref={resizableRef}
-        style={props.directions}
-        className={`border-2 border-slate-400 absolute cursor-grab text-wrap p`}
+        style={{
+          opacity: props.displayBorder ? "1" : "0",
+          pointerEvents: props.displayBorder ? "all" : "none",
+          ...props.directions,
+        }}
+        className={twMerge(
+          "border-2 border-slate-400 absolute cursor-grab text-wrap p"
+        )}
         onMouseUp={handleDragEnd}
         onMouseLeave={handleDragEnd}
         onMouseDown={handleDragStart}
